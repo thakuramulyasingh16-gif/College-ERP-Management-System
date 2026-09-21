@@ -15,7 +15,7 @@ const pool = mysql.createPool({
   connectTimeout: 20000,
   ssl: {
     ca: fs.existsSync(caCertPath) ? fs.readFileSync(caCertPath) : undefined,
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
   },
   waitForConnections: true,
   connectionLimit: 10,
