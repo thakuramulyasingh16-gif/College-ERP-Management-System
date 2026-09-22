@@ -100,7 +100,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchStats = async () => {
-    fetch("http://localhost:5000/api/dashboard-stats", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/dashboard-stats", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -112,7 +112,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchDepartments = async () => {
-    fetch("http://localhost:5000/api/departments", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/departments", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -125,7 +125,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchCourses = async () => {
-    fetch(`http://localhost:5000/api/courses`, {
+    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/courses`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -138,7 +138,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchSessions = async () => {
-    fetch("http://localhost:5000/api/sessions", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/sessions", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -154,7 +154,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     const deptObj = departments?.find(d => d.id === parseInt(deptFilter));
     const deptName = deptObj ? deptObj.name : '';
     
-    fetch(`http://localhost:5000/api/teachers?search=${searchTerm}&department_id=${deptFilter}&department=${deptName}`, {
+    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/teachers?search=${searchTerm}&department_id=${deptFilter}&department=${deptName}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -172,7 +172,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     const courseObj = courses?.find(c => c.id === parseInt(courseFilter));
     const courseName = courseObj ? courseObj.name : '';
     
-    fetch(`http://localhost:5000/api/students?search=${searchTerm}&course=${courseName}&session=${sessionFilter}`, {
+    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/students?search=${searchTerm}&course=${courseName}&session=${sessionFilter}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -187,7 +187,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchFees = async () => {
-    fetch("http://localhost:5000/api/fee-structures", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/fee-structures", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -200,7 +200,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchFeeRecords = async () => {
-    fetch("http://localhost:5000/api/admin/fees", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/fees", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -213,7 +213,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchComplaints = async () => {
-    fetch("http://localhost:5000/api/admin/complaints", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/complaints", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -226,7 +226,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchNotices = async () => {
-    fetch("http://localhost:5000/api/notices", {
+    fetch("https://college-erp-management-system-a9xk.onrender.com/api/notices", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
