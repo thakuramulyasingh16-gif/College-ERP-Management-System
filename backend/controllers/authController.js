@@ -46,6 +46,7 @@ exports.login = async (req, res) => {
     const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ? OR mobile = ?", 
       [loginIdentifier, loginIdentifier]
+      console.log(users)
     );
 
     if (users.length === 0) {
