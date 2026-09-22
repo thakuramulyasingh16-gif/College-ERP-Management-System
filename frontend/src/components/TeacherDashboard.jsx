@@ -317,7 +317,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
     if (!selectedCourse) return alert('Please select a course');
     if (!attendanceSession) return alert('Please enter session');
     try {
-      await authFetch('http://localhost:5000/api/attendance/bulk', { 
+      await authFetch('https://college-erp-management-system-a9xk.onrender.com/api/attendance/bulk', { 
           method: 'POST',
           body: JSON.stringify({ 
               course_id: selectedCourse, 
@@ -1173,7 +1173,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
                         <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{m.course_name}</p>
                         <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Session: {m.session || 'All'}</p>
                     </div>
-                    <a href={m.file_url ? "http://localhost:5000" + m.file_url : m.url} target="_blank" rel="noopener noreferrer" className="block text-center py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg">Open {m.file_url ? 'PDF' : 'Link'}</a>
+                    <a href={m.file_url ? "https://college-erp-management-system-a9xk.onrender.com" + m.file_url : m.url} target="_blank" rel="noopener noreferrer" className="block text-center py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg">Open {m.file_url ? 'PDF' : 'Link'}</a>
                 </div>
             ))}
             {filteredMaterials.length === 0 && (
