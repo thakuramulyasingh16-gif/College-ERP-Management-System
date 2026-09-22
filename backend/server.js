@@ -23,7 +23,7 @@ db.getConnection()
   });
 
 app.use(cors({
-  origin: "http://localhost:5174",
+  origin: "https://college-erp-management-system-1.onrender.com",
   credentials: true
 }));
 app.use(express.json());
