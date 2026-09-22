@@ -94,7 +94,7 @@ const Dashboard = () => {
                  />
                 {user?.profile_image ? (
                   <img 
-                    src={"http://localhost:5000" + (user?.profile_image)} 
+                    src={"https://college-erp-management-system-a9xk.onrender.com" + (user?.profile_image)} 
                     alt="Profile" 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                    />
