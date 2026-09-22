@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate": "node migrate-v1.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
