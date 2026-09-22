@@ -4,7 +4,7 @@
   "description": "College ERP Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node migrate.js && npm run migrate && node server.js",
+    "start": "node migrate.js && npm run migrate && node seed.js && node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "node run-migration.js"
   },
