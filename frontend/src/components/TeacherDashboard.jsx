@@ -130,9 +130,9 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
       setActiveTeacherDept(tDept);
 
       const [coursesRes, subjectsRes, sessionsRes] = await Promise.all([
-        authFetch(`http://localhost:5000/api/courses`), 
-        authFetch(`http://localhost:5000/api/subjects`),
-        authFetch(`http://localhost:5000/api/sessions`)
+        authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/courses`), 
+        authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/subjects`),
+        authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/sessions`)
       ]);
 
       const coursesData = await coursesRes.json();
@@ -178,7 +178,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
       const tDept = activeTeacherDept || (teacher.department || "BCA").toLowerCase().trim();
 
       // Students
-      const res = await authFetch(`http://localhost:5000/api/teacher/students`);
+      const res = await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/teacher/students`);
       const result = await res.json();
       if(result.success){
         const fetchedStudents = Array.isArray(result.data) ? result.data : [];
@@ -209,7 +209,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
       }
       
       // Assignments
-      const aRes = await authFetch(`http://localhost:5000/api/assignments`);
+      const aRes = await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/assignments`);
       const aResult = await aRes.json();
       if (aResult.success) {
         const allAssignments = Array.isArray(aResult.data) ? aResult.data : [];
@@ -225,7 +225,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
 
       // Notes
       if (activeTab === 'notes') {
-        const nRes = await authFetch(`http://localhost:5000/api/notes`);
+        const nRes = await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/notes`);
         const nResult = await nRes.json();
         if (nResult.success) {
           const allNotes = Array.isArray(nResult.data) ? nResult.data : [];
@@ -342,7 +342,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
       
       setLoading(true);
       try {
-        const res = await authFetch(`http://localhost:5000/api/subjects?department_id=${teacher.department_id}&course=${courseName}&session=${marksSession}`);
+        const res = await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/subjects?department_id=${teacher.department_id}&course=${courseName}&session=${marksSession}`);
         const result = await res.json();
         if (result.success) {
           setMarksSubjects(Array.isArray(result.data) ? result.data : []);
@@ -459,7 +459,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
     if (!marksCourse || !marksSession || !examName) return alert("Select course, session and exam name");
     if (!window.confirm("Are you sure you want to delete marks for this exam?")) return;
     try {
-        await authFetch(`http://localhost:5000/api/teacher/marks?course_id=${marksCourse}&session=${marksSession}&exam_name=${examName}`, {
+        await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/teacher/marks?course_id=${marksCourse}&session=${marksSession}&exam_name=${examName}`, {
             method: 'DELETE'
         });
         alert("Marks deleted successfully");
@@ -472,7 +472,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
     setSubmissions([]); // Clear previous to show fresh data
     try {
         console.log("DEBUG: Fetching submissions for Assignment ID:", assignId);
-        const res = await authFetch(`http://localhost:5000/api/assignments/submissions?assignment_id=${assignId}`);
+        const res = await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/assignments/submissions?assignment_id=${assignId}`);
         const result = await res.json();
         
         console.log("DEBUG: Submissions API Result:", result);
@@ -502,13 +502,13 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
         const payload = { ...assignForm, total_marks: finalTotalMarks };
 
         if (isEditingAssignment) {
-            await authFetch(`http://localhost:5000/api/assignments/${assignForm.id}`, {
+            await authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/assignments/${assignForm.id}`, {
                 method: 'PUT',
                 body: JSON.stringify(payload)
             });
             alert('Assignment Updated Successfully!');
         } else {
-            await authFetch('http://localhost:5000/api/assignments', {
+            await authFetch('https://college-erp-management-system-a9xk.onrender.com/api/assignments', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
