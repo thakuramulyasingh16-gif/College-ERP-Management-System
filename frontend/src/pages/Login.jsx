@@ -23,7 +23,7 @@ const Login = () => {
     
     console.log("Login request:", trimmedEmail, trimmedPassword);
     try {
-      const res = await fetch("https://college-erp-management-system-a9xk.onrender.com", {
+      const res = await fetch("https://college-erp-management-system-a9xk.onrender.com/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
