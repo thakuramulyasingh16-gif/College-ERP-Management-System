@@ -506,7 +506,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                     <tr key={s?.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden">
-                          {s?.profile_image ? <img src={"http://localhost:5000" + (s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
+                          {s?.profile_image ? <img src={"https://college-erp-management-system-a9xk.onrender.com" + (s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
                         </div>
                       </td>
                       <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.email}</p></td>
@@ -515,7 +515,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button onClick={() => {
                           setEditTeacherModal({ open: true, data: {...s, new_profile_image: null} });
-                          setTeacherPreview(s.profile_image ? "http://localhost:5000" + s.profile_image : null);
+                          setTeacherPreview(s.profile_image ? "https://college-erp-management-system-a9xk.onrender.com" + s.profile_image : null);
                         }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
                         <button onClick={() => setResetModal({ open: true, userId: s?.user_id, newPassword: '' })} className="p-2 text-slate-400 hover:text-blue-600"><Key size={18}  /></button>
                         <button onClick={() => handleDeleteTeacher(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
@@ -612,7 +612,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                   <tr key={s?.user_id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden">
-                        {s?.profile_image ? <img src={"http://localhost:5000" + (s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
+                        {s?.profile_image ? <img src={"https://college-erp-management-system-a9xk.onrender.com" + (s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
                       </div>
                     </td>
                     <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.course}</p></td>
@@ -622,7 +622,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
                       <button onClick={() => {
                         setEditStudentModal({ open: true, data: {...s, new_profile_image: null} });
-                        setStudentPreview(s.profile_image ? "http://localhost:5000" + s.profile_image : null);
+                        setStudentPreview(s.profile_image ? "https://college-erp-management-system-a9xk.onrender.com" + s.profile_image : null);
                       }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
                       <button onClick={() => setResetModal({ open: true, userId: s?.user_id, newPassword: '' })} className="p-2 text-slate-400 hover:text-blue-600"><Key size={18}  /></button>
                       <button onClick={() => handleDeleteStudent(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
