@@ -46,9 +46,9 @@ exports.login = async (req, res) => {
     const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ? OR mobile = ?", 
       [loginIdentifier, loginIdentifier]
-      console.log(users)
-    );
-
+      );
+  console.log(users)
+    
     if (users.length === 0) {
       console.log(`DEBUG: Login failed - User not found: ${loginIdentifier}`);
       return res.status(401).json({ message: "Invalid email or password" });
