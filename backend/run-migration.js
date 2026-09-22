@@ -2,7 +2,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 
 const migrationFiles = [
-  'migrate-v1.js',
   'migrate-v2.js',
   'migrate-v3.js',
   'migrate-v4.js',
