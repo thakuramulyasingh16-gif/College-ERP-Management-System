@@ -2,7 +2,7 @@
 import { getToken } from '../utils/api';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://college-erp-management-system-a9xk.onrender.com/api',
 });
 
 api.interceptors.request.use((config) => {
