@@ -598,7 +598,7 @@ const StudentDashboard = ({ activeTab }) => {
               </div>
               <p className="text-xs text-slate-400 font-medium mb-8 italic mt-auto uppercase tracking-tighter">Assigned by {n?.teacher_name}</p>
               {n?.file_url ? (
-                  <a href={"http://localhost:5000" + n?.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/20"><Download size={14}  /> Download PDF</a>
+                  <a href={"https://college-erp-management-system-a9xk.onrender.com" + n?.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/20"><Download size={14}  /> Download PDF</a>
               ) : (
                   <a href={n?.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Open Resource</a>
               )}
