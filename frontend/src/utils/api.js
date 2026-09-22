@@ -1,4 +1,4 @@
-const BASE_URL = "https://college-erp-management-system-a9xk.onrender.com";
+const BASE_URL = "https://college-erp-management-system-a9xk.onrender.com/api";
 
 export const getToken = () => {
   return localStorage.getItem("token") || "";
