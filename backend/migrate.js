@@ -22,7 +22,7 @@ async function migrate() {
 
     console.log('Connected to MySQL.');
 
-    const sqlPath = path.join(__dirname, '..', 'College ERP', 'schema.sql');
+    const sqlPath = path.join(__dirname, '..', 'databases', 'schema.sql');
     const sql = fs.readFileSync(sqlPath, 'utf8');
 
     try {
