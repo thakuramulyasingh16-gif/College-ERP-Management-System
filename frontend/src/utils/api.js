@@ -4,41 +4,51 @@ export const getToken = () => {
   return localStorage.getItem("token") || "";
 };
 
-export const authFetch = (url, options = {}) => {
+/**
+ * Authenticated fetch wrapper.
+ * Automatically attaches the Bearer token from localStorage.
+ * On 401 (expired/invalid/blacklisted token), clears local storage
+ * and redirects to /login so the user cannot stay on a protected page.
+ */
+export const authFetch = async (url, options = {}) => {
   const token = getToken();
   const headers = {
-    "Authorization": token ? `Bearer ${token}` : "",
+    Authorization: token ? `Bearer ${token}` : "",
     ...(options.headers || {})
   };
 
   // Only add Content-Type if not already present and not FormData
   if (!headers["Content-Type"] && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
-  } else if (headers["Content-Type"] === 'multipart/form-data') {
-    // For FormData, let the browser set the Content-Type with boundary
+  } else if (headers["Content-Type"] === "multipart/form-data") {
+    // Let the browser set Content-Type with boundary for FormData
     delete headers["Content-Type"];
   }
 
-  return fetch(url, {
-    ...options,
-    headers
-  });
+  const response = await fetch(url, { ...options, headers });
+
+  // If the server rejects the token, force logout on the client side
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("teacher");
+    // Hard redirect: ensures the page is fully unloaded and cannot be restored by Back
+    window.location.replace("/login");
+    return response;
+  }
+
+  return response;
 };
 
 export const fetchData = async (endpoint) => {
   const url = `${BASE_URL}${endpoint}`;
-  console.log("Fetching from:", url);
   try {
     const res = await authFetch(url);
-    
     if (!res.ok) {
-        console.error("Fetch failed with status:", res.status);
-        return [];
+      console.error("Fetch failed with status:", res.status);
+      return [];
     }
-    
-    const data = await res.json();
-    console.log("Data received from", endpoint, ":", data);
-    return data;
+    return await res.json();
   } catch (err) {
     console.error("Fetch Error for", endpoint, ":", err);
     return [];
