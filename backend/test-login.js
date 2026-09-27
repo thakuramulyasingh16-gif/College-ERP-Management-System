@@ -1,7 +1,7 @@
 async function testLogin(email, password) {
   try {
     console.log(`Testing login for ${email}...`);
-    const res = await fetch('http://localhost:5000/api/login', {
+    const res = await fetch('https://college-erp-management-system-a9xk.onrender.com/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
