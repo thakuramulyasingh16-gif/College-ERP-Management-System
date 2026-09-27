@@ -16,6 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -28,9 +29,28 @@ const Login = () => {
     }
   }, []);
 
+  // Live countdown timer for rate limit lockout
+  React.useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setLockoutSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setError('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
+
   // Authentication logic preserved 100% exactly
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (lockoutSeconds > 0) return;
     setLoading(true);
     setError('');
 
@@ -47,13 +67,22 @@ const Login = () => {
         }
       );
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      // Handle 429 Too Many Requests (Rate limit / lockout)
+      if (res.status === 429) {
+        const retryHeader = res.headers.get('Retry-After');
+        const retrySeconds = data.retryAfter || (retryHeader ? parseInt(retryHeader, 10) : 60);
+        setLockoutSeconds(retrySeconds);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.message || "Login failed. Please check your credentials.");
         return;
       }
 
+      setLockoutSeconds(0);
       login(data.user, data.token);
 
       const role = data.user.role;
@@ -193,7 +222,7 @@ const Login = () => {
         </div>
 
         {/* Error Alert Card */}
-        {error && (
+        {error && lockoutSeconds === 0 && (
           <div style={{
             marginBottom: '1.25rem',
             padding: '0.75rem 1rem',
@@ -350,47 +379,51 @@ const Login = () => {
           {/* Primary Clay Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || lockoutSeconds > 0}
             style={{
               marginTop: '0.5rem',
               width: '100%',
               padding: '0.875rem',
               borderRadius: '18px',
               border: 'none',
-              background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
+              background: lockoutSeconds > 0
+                ? '#94A3B8'
+                : 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
               color: '#FFFFFF',
               fontWeight: 700,
               fontSize: '0.875rem',
               letterSpacing: '0.02em',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35)',
+              cursor: (loading || lockoutSeconds > 0) ? 'not-allowed' : 'pointer',
+              boxShadow: lockoutSeconds > 0
+                ? 'inset 2px 2px 4px rgba(0, 0, 0, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.5)'
+                : '6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.625rem',
               transition: 'all 0.2s ease',
-              opacity: loading ? 0.75 : 1,
+              opacity: (loading || lockoutSeconds > 0) ? 0.75 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!loading) {
+              if (!loading && lockoutSeconds === 0) {
                 e.currentTarget.style.boxShadow = '8px 8px 18px rgba(99, 102, 241, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.9), inset 1px 1px 2px rgba(255, 255, 255, 0.4)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }
             }}
             onMouseLeave={(e) => {
-              if (!loading) {
+              if (!loading && lockoutSeconds === 0) {
                 e.currentTarget.style.boxShadow = '6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35)';
                 e.currentTarget.style.transform = 'translateY(0)';
               }
             }}
             onMouseDown={(e) => {
-              if (!loading) {
+              if (!loading && lockoutSeconds === 0) {
                 e.currentTarget.style.boxShadow = 'inset 4px 4px 8px rgba(0, 0, 0, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.2)';
                 e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
               }
             }}
             onMouseUp={(e) => {
-              if (!loading) {
+              if (!loading && lockoutSeconds === 0) {
                 e.currentTarget.style.boxShadow = '8px 8px 18px rgba(99, 102, 241, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.9), inset 1px 1px 2px rgba(255, 255, 255, 0.4)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }
@@ -398,6 +431,11 @@ const Login = () => {
           >
             {loading ? (
               <span>Signing In...</span>
+            ) : lockoutSeconds > 0 ? (
+              <>
+                <Lock size={18} strokeWidth={2.5} />
+                <span>Locked ({lockoutSeconds}s)</span>
+              </>
             ) : (
               <>
                 <LogIn size={18} strokeWidth={2.5} />
@@ -405,6 +443,37 @@ const Login = () => {
               </>
             )}
           </button>
+
+          {/* Live Lockout Warning Card Under Sign In Button */}
+          {lockoutSeconds > 0 && (
+            <div
+              style={{
+                marginTop: '0.25rem',
+                padding: '0.75rem 1rem',
+                background: '#FEF2F2',
+                boxShadow: 'inset 3px 3px 6px rgba(239, 68, 68, 0.2), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                borderRadius: '16px',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.625rem',
+              }}
+            >
+              <AlertCircle size={17} style={{ color: 'var(--clay-danger)', flexShrink: 0 }} />
+              <p
+                style={{
+                  fontSize: '0.8125rem',
+                  color: 'var(--clay-danger)',
+                  fontWeight: 600,
+                  margin: 0,
+                  textAlign: 'center',
+                }}
+              >
+                Too many attempts. Try again in {lockoutSeconds} {lockoutSeconds === 1 ? 'second' : 'seconds'}
+              </p>
+            </div>
+          )}
         </form>
 
         <p style={{

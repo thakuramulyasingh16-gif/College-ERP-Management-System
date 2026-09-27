@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const auth = require("../middleware/auth");
+const { loginRateLimiter } = require("../middleware/loginRateLimiter");
 
 // Public routes
-router.post("/login", authController.login);
+router.post("/login", loginRateLimiter, authController.login);
 router.post("/register", authController.register);
 
 // Protected routes
