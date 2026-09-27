@@ -344,12 +344,62 @@ textarea,
   border: none !important;
   background: var(--clay-surface-inset) !important;
   color: var(--clay-text) !important;
-  padding: 0.75rem 1rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  padding-right: 1rem !important;
+  padding-left: 1rem; /* default fallback only so pl-10/pl-12/inline padding take precedence */
   font-size: 0.875rem !important;
   font-weight: 500 !important;
   box-shadow: var(--clay-inset) !important;
   transition: all 0.2s ease !important;
   outline: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ===============================================================
+   LEADING ICON & INPUT ALIGNMENT (FIXES ISSUE 1 & ISSUE 2)
+   Prevents any overlap between leading icons and placeholder text
+   =============================================================== */
+
+/* Guarantee 44px–48px left padding on inputs with leading icons */
+.relative input.pl-10,
+.relative input[class*="pl-10"],
+input.pl-10,
+input[class*="pl-10"] {
+  padding-left: 44px !important;
+}
+
+.relative input.pl-12,
+.relative input[class*="pl-12"],
+input.pl-12,
+input[class*="pl-12"] {
+  padding-left: 48px !important;
+}
+
+/* Center leading icons vertically and place cleanly at 14px */
+.relative > svg.absolute,
+.relative > svg.left-3,
+.relative > svg.left-4 {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* Question option prefixes (e.g. A, B in teacher dashboard) */
+.relative > span.absolute {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
 }
 
 input[type="text"]:focus,

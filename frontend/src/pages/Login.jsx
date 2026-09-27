@@ -81,7 +81,7 @@ const Login = () => {
         padding: '1.5rem',
       }}
     >
-      {/* Claymorphism Login Card: border-radius 28px, core clay shadow, no hard borders */}
+      {/* Claymorphism Login Card */}
       <div
         style={{
           width: '100%',
@@ -222,24 +222,23 @@ const Login = () => {
             }}>
               {currentTab.label} Email ID
             </label>
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
-                background: 'var(--clay-surface)',
-                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.45), -3px -3px 6px rgba(255, 255, 255, 0.8)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none',
-              }}>
-                <Mail size={15} style={{ color: 'var(--clay-primary)' }} />
-              </div>
+            {/* Relative-positioned container for input + leading icon */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+              <Mail
+                size={20}
+                style={{
+                  position: 'absolute',
+                  left: '16px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                  width: '20px',
+                  height: '20px',
+                  color: 'var(--clay-primary)',
+                  flexShrink: 0,
+                }}
+              />
               <input
                 type="email"
                 placeholder={currentTab.placeholder}
@@ -248,7 +247,10 @@ const Login = () => {
                 required
                 style={{
                   width: '100%',
-                  padding: '0.8125rem 1rem 0.8125rem 3.25rem',
+                  paddingTop: '0.8125rem',
+                  paddingBottom: '0.8125rem',
+                  paddingRight: '1rem',
+                  paddingLeft: '48px',
                   borderRadius: '18px',
                   background: 'var(--clay-surface-inset)',
                   border: 'none',
@@ -258,6 +260,7 @@ const Login = () => {
                   outline: 'none',
                   boxShadow: 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)',
                   transition: 'all 0.2s ease',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
                   e.target.style.background = '#F4F7FD';
@@ -283,24 +286,23 @@ const Login = () => {
             }}>
               Password
             </label>
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
-                background: 'var(--clay-surface)',
-                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.45), -3px -3px 6px rgba(255, 255, 255, 0.8)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none',
-              }}>
-                <Lock size={15} style={{ color: 'var(--clay-primary)' }} />
-              </div>
+            {/* Relative-positioned container for input + leading icon */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+              <Lock
+                size={20}
+                style={{
+                  position: 'absolute',
+                  left: '16px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                  width: '20px',
+                  height: '20px',
+                  color: 'var(--clay-primary)',
+                  flexShrink: 0,
+                }}
+              />
               <input
                 type="password"
                 placeholder="Enter password"
@@ -309,7 +311,10 @@ const Login = () => {
                 required
                 style={{
                   width: '100%',
-                  padding: '0.8125rem 1rem 0.8125rem 3.25rem',
+                  paddingTop: '0.8125rem',
+                  paddingBottom: '0.8125rem',
+                  paddingRight: '1rem',
+                  paddingLeft: '48px',
                   borderRadius: '18px',
                   background: 'var(--clay-surface-inset)',
                   border: 'none',
@@ -319,6 +324,7 @@ const Login = () => {
                   outline: 'none',
                   boxShadow: 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)',
                   transition: 'all 0.2s ease',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
                   e.target.style.background = '#F4F7FD';
@@ -332,7 +338,7 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Primary Clay Button: Raised look at rest, pressed look on active */}
+          {/* Primary Clay Button */}
           <button
             type="submit"
             disabled={loading}
