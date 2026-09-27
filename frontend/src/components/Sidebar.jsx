@@ -19,7 +19,7 @@ import {
 import logo from '../assets/logo.png';
 
 const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar }) => {
-  // All navigation menu items preserved exactly as in the original application
+  // Navigation menu items preserved exactly as in the original application
   const menuItems = {
     admin: [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -66,28 +66,33 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
         }`}
       />
 
-      {/* Structured Clay Sidebar */}
+      {/* Claymorphism Sidebar */}
       <aside
         className={`erp-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}
+        style={{
+          background: 'var(--clay-surface)',
+          borderRight: 'none',
+          boxShadow: '4px 0 16px rgba(163, 177, 198, 0.3)',
+        }}
       >
         {/* Brand Header */}
         <div style={{
-          height: '64px',
+          height: '68px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isOpen ? 'space-between' : 'center',
           padding: isOpen ? '0 1.25rem' : '0',
-          borderBottom: '1px solid rgba(108, 99, 255, 0.08)',
           flexShrink: 0,
         }}>
           {isOpen ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Logo in soft clay container */}
               <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '12px',
-                background: 'var(--erp-surface-soft)',
-                border: '1px solid rgba(108, 99, 255, 0.12)',
+                width: '38px',
+                height: '38px',
+                borderRadius: '14px',
+                background: 'var(--clay-surface)',
+                boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -100,7 +105,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                 <h1 style={{
                   fontSize: '0.9375rem',
                   fontWeight: 900,
-                  color: 'var(--erp-text)',
+                  color: 'var(--clay-text)',
                   lineHeight: 1.1,
                   margin: 0,
                   letterSpacing: '-0.02em',
@@ -110,7 +115,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                 <p style={{
                   fontSize: '0.625rem',
                   fontWeight: 700,
-                  color: 'var(--erp-muted)',
+                  color: 'var(--clay-muted)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   margin: '2px 0 0 0',
@@ -121,11 +126,11 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
             </div>
           ) : (
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '12px',
-              background: 'var(--erp-surface-soft)',
-              border: '1px solid rgba(108, 99, 255, 0.12)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '14px',
+              background: 'var(--clay-surface)',
+              boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -141,16 +146,17 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
               onClick={toggleSidebar}
               className="lg:hidden"
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
-                background: 'var(--erp-surface-soft)',
-                border: '1px solid rgba(108, 99, 255, 0.10)',
-                color: 'var(--erp-muted)',
+                width: '34px',
+                height: '34px',
+                borderRadius: '12px',
+                background: 'var(--clay-surface)',
+                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.45), -3px -3px 6px rgba(255, 255, 255, 0.8)',
+                color: 'var(--clay-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                border: 'none',
               }}
             >
               <X size={18} />
@@ -158,7 +164,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
           )}
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items in Custom Scrollbar */}
         <nav
           className="custom-scrollbar"
           style={{
@@ -167,7 +173,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
             padding: isOpen ? '0.875rem 0.75rem' : '0.875rem 0.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
+            gap: '6px',
           }}
         >
           {items.map((item) => {
@@ -188,24 +194,28 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                     gap: isOpen ? '0.75rem' : '0',
                     justifyContent: isOpen ? 'flex-start' : 'center',
                     padding: isOpen ? '0.625rem 0.875rem' : '0.625rem',
-                    borderRadius: '14px',
-                    border: isActive ? '1px solid rgba(108, 99, 255, 0.14)' : '1px solid transparent',
-                    background: isActive ? 'var(--erp-surface-soft)' : 'transparent',
-                    boxShadow: isActive ? 'inset 0 1px 2px rgba(255,255,255,0.9), 0 2px 6px rgba(108,99,255,0.05)' : 'none',
-                    color: isActive ? 'var(--erp-primary)' : '#4B5563',
+                    borderRadius: '16px',
+                    border: 'none',
+                    background: isActive ? '#E5EBF6' : 'transparent',
+                    boxShadow: isActive
+                      ? 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.75)'
+                      : 'none',
+                    color: isActive ? 'var(--clay-primary)' : '#4B5563',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     position: 'relative',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = '#F8F7FD';
-                      e.currentTarget.style.color = 'var(--erp-primary)';
+                      e.currentTarget.style.background = '#F0F3FA';
+                      e.currentTarget.style.boxShadow = '3px 3px 6px rgba(163, 177, 198, 0.35), -3px -3px 6px rgba(255, 255, 255, 0.7)';
+                      e.currentTarget.style.color = 'var(--clay-primary)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.boxShadow = 'none';
                       e.currentTarget.style.color = '#4B5563';
                     }
                   }}
@@ -216,27 +226,13 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                     e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
-                  {/* Active Indicator Bar */}
-                  {isActive && isOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      left: '6px',
-                      top: '25%',
-                      bottom: '25%',
-                      width: '3px',
-                      borderRadius: '4px',
-                      background: 'var(--erp-primary)',
-                    }} />
-                  )}
-
-                  {/* Icon */}
+                  {/* Icon inside soft container if active */}
                   <item.icon
                     size={19}
                     strokeWidth={isActive ? 2.5 : 2}
                     style={{
                       flexShrink: 0,
-                      color: isActive ? 'var(--erp-primary)' : 'inherit',
-                      marginLeft: isActive && isOpen ? '6px' : '0',
+                      color: isActive ? 'var(--clay-primary)' : 'inherit',
                       transition: 'all 0.15s ease',
                     }}
                   />
@@ -246,7 +242,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                     <span style={{
                       fontSize: '0.8125rem',
                       fontWeight: isActive ? 700 : 600,
-                      letterSpacing: '-0.01em',
+                      letterSpacing: '0.01em',
                       whiteSpace: 'nowrap',
                     }}>
                       {item.label}
@@ -260,15 +256,15 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                     style={{
                       position: 'fixed',
                       left: '86px',
-                      padding: '0.35rem 0.65rem',
-                      background: '#1F2937',
-                      color: '#FFFFFF',
+                      padding: '0.4rem 0.75rem',
+                      background: 'var(--clay-surface)',
+                      color: 'var(--clay-text)',
                       fontSize: '0.75rem',
-                      fontWeight: 600,
-                      borderRadius: '8px',
+                      fontWeight: 700,
+                      borderRadius: '12px',
                       whiteSpace: 'nowrap',
                       pointerEvents: 'none',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      boxShadow: '4px 4px 10px rgba(163, 177, 198, 0.5), -4px -4px 10px rgba(255, 255, 255, 0.8)',
                       zIndex: 60,
                     }}
                     className="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150"
@@ -281,10 +277,9 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
           })}
         </nav>
 
-        {/* Bottom Section: Logout */}
+        {/* Bottom Section: Clay Logout Button */}
         <div style={{
-          padding: isOpen ? '0.75rem' : '0.75rem 0.5rem',
-          borderTop: '1px solid rgba(108, 99, 255, 0.08)',
+          padding: isOpen ? '0.875rem' : '0.875rem 0.5rem',
           flexShrink: 0,
         }}>
           <button
@@ -296,25 +291,30 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
               gap: isOpen ? '0.75rem' : '0',
               justifyContent: isOpen ? 'flex-start' : 'center',
               padding: isOpen ? '0.625rem 0.875rem' : '0.625rem',
-              borderRadius: '14px',
-              border: '1px solid rgba(239, 68, 68, 0.14)',
-              background: 'rgba(239, 68, 68, 0.06)',
-              color: 'var(--erp-danger)',
+              borderRadius: '16px',
+              border: 'none',
+              background: '#FEF2F2',
+              boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)',
+              color: 'var(--clay-danger)',
               cursor: 'pointer',
               fontWeight: 700,
               fontSize: '0.8125rem',
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '5px 5px 10px rgba(163, 177, 198, 0.45), -5px -5px 10px rgba(255, 255, 255, 0.9)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)';
             }}
             onMouseDown={(e) => {
+              e.currentTarget.style.boxShadow = 'inset 3px 3px 6px rgba(239, 68, 68, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.7)';
               e.currentTarget.style.transform = 'scale(0.97)';
             }}
             onMouseUp={(e) => {
+              e.currentTarget.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >

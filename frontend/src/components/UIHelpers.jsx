@@ -10,14 +10,8 @@ export const Loader = () => (
     padding: '4rem 2rem',
     gap: '1.25rem',
   }}>
-    {/* Clay spinner */}
-    <div style={{
-      width: '48px', height: '48px',
-      border: '3px solid rgba(108,99,255,0.15)',
-      borderTopColor: 'var(--clay-primary)',
-      borderRadius: '50%',
-      animation: 'spinClay 0.75s linear infinite',
-    }} />
+    {/* Clay Spinner */}
+    <div className="clay-spinner" />
     <div style={{ textAlign: 'center' }}>
       <p style={{
         fontWeight: 800,
@@ -25,7 +19,6 @@ export const Loader = () => (
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
         color: 'var(--clay-muted)',
-        animation: 'pulseSoft 2s ease-in-out infinite',
       }}>
         Loading data...
       </p>
@@ -36,20 +29,23 @@ export const Loader = () => (
 export const ErrorMessage = ({ message, retry }) => (
   <div style={{
     padding: '2.5rem',
-    background: 'rgba(239,68,68,0.06)',
-    borderRadius: 'var(--clay-r)',
-    border: '1.5px solid rgba(239,68,68,0.15)',
+    background: 'var(--clay-surface)',
+    borderRadius: 'var(--clay-radius)',
+    border: 'none',
+    boxShadow: 'var(--clay-shadow)',
     textAlign: 'center',
-    animation: 'clayIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both',
   }}>
-    {/* Icon */}
+    {/* Icon inside soft clay container */}
     <div style={{
-      width: '64px', height: '64px',
-      background: 'rgba(239,68,68,0.10)',
+      width: '64px',
+      height: '64px',
+      background: '#FEF2F2',
       borderRadius: '20px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       margin: '0 auto 1.25rem',
-      boxShadow: '0 4px 16px -2px rgba(239,68,68,0.15)',
+      boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)',
     }}>
       <AlertTriangle size={28} style={{ color: 'var(--clay-danger)' }} />
     </div>
@@ -80,23 +76,21 @@ export const ErrorMessage = ({ message, retry }) => (
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.625rem 1.25rem',
-          background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-secondary) 100%)',
+          background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
           color: 'white',
-          borderRadius: '14px',
+          borderRadius: '16px',
           border: 'none',
           cursor: 'pointer',
           fontWeight: 700,
           fontSize: '0.8125rem',
-          boxShadow: 'var(--clay-btn)',
+          boxShadow: 'var(--clay-btn-primary-shadow)',
           transition: 'all 0.2s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = 'var(--clay-btn-hover)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = 'var(--clay-btn)';
         }}
       >
         <RefreshCw size={15} strokeWidth={2.5} />

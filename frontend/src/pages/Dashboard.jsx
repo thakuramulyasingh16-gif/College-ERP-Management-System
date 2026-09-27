@@ -5,13 +5,13 @@ import AdminDashboard from '../components/AdminDashboard';
 import TeacherDashboard from '../components/TeacherDashboard';
 import StudentDashboard from '../components/StudentDashboard';
 import Clock from '../components/Clock';
-import { Menu, GraduationCap, Plus, ShieldCheck } from 'lucide-react';
+import { Menu, GraduationCap, ShieldCheck } from 'lucide-react';
 import api from '../api';
 
 const roleConfig = {
-  admin:   { label: 'Admin',   color: '#6C63FF', bg: 'rgba(108, 99, 255, 0.10)' },
-  teacher: { label: 'Teacher', color: '#8B7CF6', bg: 'rgba(139, 124, 246, 0.10)' },
-  student: { label: 'Student', color: '#22C55E', bg: 'rgba(34, 197, 94, 0.10)' },
+  admin:   { label: 'Admin',   color: '#6366F1', bg: '#EEF2FF' },
+  teacher: { label: 'Teacher', color: '#8B5CF6', bg: '#F5F3FF' },
+  student: { label: 'Student', color: '#10B981', bg: '#ECFDF5' },
 };
 
 const Dashboard = () => {
@@ -30,17 +30,17 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'var(--erp-bg)',
+        background: 'linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%)',
         flexDirection: 'column',
         gap: '1rem',
       }}>
         <div className="clay-spinner" />
         <p style={{
-          fontWeight: 700,
+          fontWeight: 800,
           fontSize: '0.75rem',
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
-          color: 'var(--erp-muted)',
+          color: 'var(--clay-muted)',
         }}>
           Authenticating...
         </p>
@@ -64,39 +64,41 @@ const Dashboard = () => {
 
       {/* Main Area: automatically occupies the remaining screen width */}
       <div className="erp-main-area">
-        {/* Clean, compact Clay Header */}
+        {/* Claymorphism Navbar / Header */}
         <header className="erp-header">
           {/* Left: Sidebar Toggle + Portal Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button
               onClick={toggleSidebar}
               className="erp-header-btn"
               title="Toggle Menu"
             >
-              <Menu size={19} />
+              <Menu size={19} strokeWidth={2.5} />
             </button>
 
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                 <h2 style={{
                   fontSize: '0.9375rem',
-                  fontWeight: 800,
-                  color: 'var(--erp-text)',
+                  fontWeight: 900,
+                  color: 'var(--clay-text)',
                   lineHeight: 1.2,
                   margin: 0,
                   letterSpacing: '-0.02em',
                 }}>
                   City Group of Colleges
                 </h2>
+                {/* Role Pill with Inset Clay Depth */}
                 <span style={{
-                  padding: '2px 8px',
+                  padding: '3px 10px',
                   background: rc.bg,
                   color: rc.color,
-                  borderRadius: '999px',
+                  borderRadius: '9999px',
+                  boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
                   fontSize: '0.625rem',
                   fontWeight: 800,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.08em',
                 }}>
                   {rc.label} Portal
                 </span>
@@ -104,13 +106,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Right: User Information & Profile Action */}
+          {/* Right: User Information & Profile Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div className="hidden sm:block" style={{ textAlign: 'right' }}>
               <p style={{
                 fontSize: '0.8125rem',
                 fontWeight: 700,
-                color: 'var(--erp-text)',
+                color: 'var(--clay-text)',
                 margin: 0,
                 lineHeight: 1.2,
               }}>
@@ -118,22 +120,23 @@ const Dashboard = () => {
               </p>
               <p style={{
                 fontSize: '0.6875rem',
-                color: 'var(--erp-muted)',
+                color: 'var(--clay-muted)',
                 margin: '2px 0 0 0',
-                fontWeight: 500,
+                fontWeight: 600,
+                letterSpacing: '0.02em',
               }}>
                 {user?.email}
               </p>
             </div>
 
-            {/* Profile Avatar with Photo Upload (Functionality 100% Preserved) */}
+            {/* Profile Avatar inside Soft Clay Container (Functionality 100% Preserved) */}
             <label
               style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: 'var(--erp-surface-soft)',
-                border: '1.5px solid rgba(108, 99, 255, 0.15)',
+                width: '42px',
+                height: '42px',
+                borderRadius: '14px',
+                background: 'var(--clay-surface)',
+                boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -175,7 +178,7 @@ const Dashboard = () => {
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
-                <GraduationCap size={18} style={{ color: 'var(--erp-primary)' }} />
+                <GraduationCap size={20} style={{ color: 'var(--clay-primary)' }} />
               )}
             </label>
           </div>

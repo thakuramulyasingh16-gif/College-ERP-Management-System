@@ -5,55 +5,69 @@
    CENTRALIZED CLAYMORPHISM DESIGN SYSTEM (ERP DESIGN TOKENS)
    =============================================================== */
 :root {
-  --erp-bg:           #F5F3FA;
-  --erp-surface:      #FFFFFF;
-  --erp-surface-soft: #F0EDF8;
-  --erp-primary:      #6C63FF;
-  --erp-secondary:    #8B7CF6;
-  --erp-text:         #1F2937;
-  --erp-muted:        #6B7280;
-  --erp-success:      #22C55E;
-  --erp-warning:      #F59E0B;
-  --erp-danger:       #EF4444;
-  --erp-radius:       24px;
-  --erp-radius-lg:    28px;
-  --erp-radius-sm:    14px;
-  --erp-shadow:       0 8px 24px -4px rgba(108, 99, 255, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-  --erp-shadow-sm:    0 4px 12px -2px rgba(108, 99, 255, 0.05), 0 1px 3px -1px rgba(0, 0, 0, 0.02);
-  --erp-shadow-lg:    0 16px 36px -6px rgba(108, 99, 255, 0.10), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
-  --erp-shadow-inset: inset 0 2px 4px rgba(108, 99, 255, 0.04);
-  --erp-clay-card:    0 10px 28px -4px rgba(108, 99, 255, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.02), inset 0 1px 2px rgba(255, 255, 255, 0.95);
-  --erp-clay-btn:     0 4px 14px -2px rgba(108, 99, 255, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  /* Pastel clay backgrounds */
+  --clay-bg-start:       #E8ECFF;
+  --clay-bg-end:         #F5F3FF;
+  --clay-bg-gradient:    linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%);
+  --clay-surface:        #EEF2FB;
+  --clay-surface-card:   #EEF2FB;
+  --clay-surface-soft:   #E5EAF5;
+  --clay-surface-inset:  #E5EBF6;
 
-  /* Legacy / helper tokens mapped directly to standard tokens */
-  --clay-bg:          var(--erp-bg);
-  --clay-surface:     var(--erp-surface);
-  --clay-primary:     var(--erp-primary);
-  --clay-secondary:   var(--erp-secondary);
-  --clay-accent:      var(--erp-secondary);
-  --clay-text:        var(--erp-text);
-  --clay-muted:       var(--erp-muted);
-  --clay-success:     var(--erp-success);
-  --clay-warning:     var(--erp-warning);
-  --clay-danger:      var(--erp-danger);
-  --clay-border:      rgba(108, 99, 255, 0.09);
-  --clay-card:        var(--erp-clay-card);
-  --clay-shadow:      var(--erp-shadow);
-  --clay-shadow-sm:   var(--erp-shadow-sm);
-  --clay-shadow-md:   var(--erp-shadow);
-  --clay-shadow-lg:   var(--erp-shadow-lg);
-  --clay-inset:       var(--erp-shadow-inset);
-  --clay-btn:         var(--erp-clay-btn);
-  --clay-r:           var(--erp-radius);
-  --clay-r-sm:        var(--erp-radius-sm);
-  --clay-r-lg:        var(--erp-radius-lg);
-  --clay-ease:        cubic-bezier(0.34, 1.56, 0.64, 1);
-  --clay-fast:        150ms ease;
-  --clay-med:         250ms ease;
+  /* Accent & Brand colors */
+  --clay-primary:        #6366F1;
+  --clay-primary-hover:  #4F46E5;
+  --clay-primary-pastel: #EEF2FF;
+  --clay-secondary:      #8B5CF6;
+  --clay-accent:         #6366F1;
+  --clay-text:           #2D3748;
+  --clay-text-muted:     #718096;
+  --clay-success:        #10B981;
+  --clay-warning:        #F59E0B;
+  --clay-danger:         #EF4444;
+
+  /* Clay Radii (24px - 32px range for cards/containers) */
+  --clay-radius:         28px;
+  --clay-radius-card:    28px;
+  --clay-radius-pill:    9999px;
+  --clay-radius-sm:      16px;
+  --clay-radius-md:      20px;
+  --clay-radius-lg:      32px;
+
+  /* Clay Shadows as specified in design requirements */
+  /* Core shadow effect (soft "clay" look) */
+  --clay-shadow:         8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8);
+  --clay-shadow-sm:      5px 5px 10px rgba(163, 177, 198, 0.5), -5px -5px 10px rgba(255, 255, 255, 0.75);
+  --clay-shadow-lg:      12px 12px 24px rgba(163, 177, 198, 0.6), -12px -12px 24px rgba(255, 255, 255, 0.85);
+
+  /* Inset shadow (pressed in) */
+  --clay-inset:          inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+  --clay-inset-sm:       inset 2px 2px 5px rgba(163, 177, 198, 0.45), inset -2px -2px 5px rgba(255, 255, 255, 0.65);
+  --clay-inset-focus:    inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7), 0 0 0 3px rgba(99, 102, 241, 0.25);
+
+  /* Buttons raised look at rest */
+  --clay-btn-shadow:     6px 6px 12px rgba(163, 177, 198, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.8);
+  --clay-btn-primary-shadow: 6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35);
+  --clay-btn-active:     inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+
+  /* Aliases for ERP backward compatibility */
+  --erp-bg:              var(--clay-bg-gradient);
+  --erp-surface:         var(--clay-surface);
+  --erp-surface-soft:    var(--clay-surface-soft);
+  --erp-primary:         var(--clay-primary);
+  --erp-secondary:       var(--clay-secondary);
+  --erp-text:            var(--clay-text);
+  --erp-muted:           var(--clay-text-muted);
+  --erp-radius:          var(--clay-radius);
+  --erp-radius-lg:       var(--clay-radius-lg);
+  --erp-radius-sm:       var(--clay-radius-sm);
+  --erp-shadow:          var(--clay-shadow);
+  --erp-clay-card:       var(--clay-shadow);
+  --erp-clay-btn:        var(--clay-btn-primary-shadow);
 }
 
 /* ===============================================================
-   BASE RESETS & TYPOGRAPHY
+   BASE RESETS & GLOBAL BACKGROUND
    =============================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -62,31 +76,33 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--erp-bg);
-  color: var(--erp-text);
+  background: var(--clay-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--clay-text);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
-/* Custom Scrollbar - Soft & Minimal */
+/* Custom Minimal Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(108, 99, 255, 0.18);
+  background: rgba(163, 177, 198, 0.45);
   border-radius: 999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(108, 99, 255, 0.35);
+  background: rgba(99, 102, 241, 0.45);
 }
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(108, 99, 255, 0.18) transparent;
+  scrollbar-color: rgba(163, 177, 198, 0.45) transparent;
 }
 
 /* Animations */
@@ -99,25 +115,26 @@ html, body {
 }
 
 /* ===============================================================
-   SHELL & LAYOUT ARCHITECTURE (SIDEBAR | MAIN CONTENT)
+   LAYOUT ARCHITECTURE (SIDEBAR | MAIN AREA)
    =============================================================== */
 .erp-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: var(--erp-bg);
+  background: var(--clay-bg-gradient) !important;
+  background-attachment: fixed !important;
 }
 
-/* Desktop Sidebar: Real flex layout column */
+/* Desktop Sidebar: True flex column */
 @media (min-width: 1024px) {
   .erp-sidebar {
     position: relative !important;
     height: 100vh;
     flex-shrink: 0;
-    background: var(--erp-surface);
-    border-right: 1px solid rgba(108, 99, 255, 0.08);
-    box-shadow: 2px 0 16px -4px rgba(108, 99, 255, 0.04);
+    background: var(--clay-surface) !important;
+    border-right: none !important;
+    box-shadow: 4px 0 16px rgba(163, 177, 198, 0.3) !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -141,9 +158,9 @@ html, body {
     bottom: 0;
     width: 260px;
     height: 100vh;
-    background: var(--erp-surface);
-    border-right: 1px solid rgba(108, 99, 255, 0.08);
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.12);
+    background: var(--clay-surface) !important;
+    border-right: none !important;
+    box-shadow: 12px 0 32px rgba(163, 177, 198, 0.45) !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -158,7 +175,7 @@ html, body {
   }
 }
 
-/* Main Area occupies remaining width automatically */
+/* Main Area */
 .erp-main-area {
   flex: 1;
   display: flex;
@@ -166,30 +183,32 @@ html, body {
   height: 100vh;
   min-width: 0;
   overflow: hidden;
-  background: var(--erp-bg);
+  background: var(--clay-bg-gradient) !important;
+  background-attachment: fixed !important;
 }
 
 /* Header */
 .erp-header {
-  height: 64px;
-  background: var(--erp-surface);
-  border-bottom: 1px solid rgba(108, 99, 255, 0.07);
-  box-shadow: 0 2px 10px -2px rgba(108, 99, 255, 0.04);
+  height: 68px;
+  background: var(--clay-surface) !important;
+  border-bottom: none !important;
+  box-shadow: 0 4px 16px rgba(163, 177, 198, 0.25) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
+  padding: 0 1.75rem;
   flex-shrink: 0;
   z-index: 20;
 }
 
 .erp-header-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--erp-radius-sm);
-  background: var(--erp-surface-soft);
-  color: var(--erp-primary);
-  border: 1px solid rgba(108, 99, 255, 0.10);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--clay-radius-sm);
+  background: var(--clay-surface);
+  color: var(--clay-primary);
+  border: none !important;
+  box-shadow: var(--clay-shadow-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,19 +216,20 @@ html, body {
   transition: all 0.2s ease;
 }
 .erp-header-btn:hover {
-  background: #E8E3F5;
   transform: translateY(-1px);
+  box-shadow: var(--clay-shadow);
 }
 .erp-header-btn:active {
-  transform: scale(0.96);
+  box-shadow: var(--clay-inset-sm) !important;
+  transform: translateY(1px) scale(0.97) !important;
 }
 
 /* Content Area */
 .erp-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 2rem;
-  background: var(--erp-bg);
+  padding: 1.75rem 2rem;
+  background: transparent !important;
 }
 .erp-content-container {
   max-width: 1440px;
@@ -224,158 +244,177 @@ html, body {
 }
 
 /* ===============================================================
-   CLAYMORPHISM CORE UTILITIES
+   CLAYMORPHISM CORE CLASSES & GLOBAL OVERRIDES
    =============================================================== */
 
-/* Clay Cards */
-.clay-card {
-  background: var(--erp-surface);
-  border-radius: var(--erp-radius);
-  border: 1px solid rgba(237, 233, 254, 0.70);
-  box-shadow: var(--erp-clay-card);
-  transition: transform var(--clay-med), box-shadow var(--clay-med);
-  position: relative;
-  overflow: hidden;
-}
-.clay-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--erp-shadow-lg);
-}
-
-/* Tactile Clay Buttons */
-.clay-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--erp-radius-sm);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  outline: none;
-  position: relative;
-}
-.clay-btn:active {
-  transform: scale(0.97) translateY(1px) !important;
-}
-
-.clay-btn-primary {
-  background: linear-gradient(135deg, var(--erp-primary) 0%, var(--erp-secondary) 100%);
-  color: #FFFFFF;
-  box-shadow: var(--erp-clay-btn);
-}
-.clay-btn-primary:hover {
-  box-shadow: 0 6px 18px -2px rgba(108, 99, 255, 0.35);
-  transform: translateY(-1px);
-}
-
-/* Clay Inset Inputs */
-.clay-input {
-  width: 100%;
-  padding: 0.65rem 0.875rem;
-  background: #F8F7FD;
-  border: 1.5px solid rgba(108, 99, 255, 0.12);
-  border-radius: var(--erp-radius-sm);
-  color: var(--erp-text);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  box-shadow: var(--erp-shadow-inset);
-  outline: none;
-}
-.clay-input:focus {
-  background: #FFFFFF;
-  border-color: var(--erp-primary);
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12);
-}
-
-/* Loading Spinner */
-.clay-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid rgba(108, 99, 255, 0.15);
-  border-top-color: var(--erp-primary);
-  border-radius: 50%;
-  animation: erpSpin 0.8s linear infinite;
-}
-
-/* ===============================================================
-   TARGETED DASHBOARD UPGRADES (CLEAN CLAYMORPHISM OVERRIDES)
-   Preserves 100% of existing HTML/JSX structure and functionality
-   =============================================================== */
-
-/* Cards in Admin/Teacher/Student dashboards */
+/* Clay Cards & Containers (24px - 32px border-radius, soft clay look) */
+.clay-card,
 .bg-white.rounded-3xl,
 .bg-white.rounded-2xl,
-.bg-white\/80.rounded-3xl {
-  background: var(--erp-surface) !important;
-  border-radius: var(--erp-radius) !important;
-  border: 1px solid rgba(237, 233, 254, 0.70) !important;
-  box-shadow: var(--erp-clay-card) !important;
+.bg-white\/80.rounded-3xl,
+div.rounded-3xl.shadow-xl,
+div.rounded-2xl.shadow-xl {
+  background: var(--clay-surface) !important;
+  border-radius: var(--clay-radius-card) !important;
+  border: none !important;
+  box-shadow: var(--clay-shadow) !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease !important;
 }
 
-/* Stat card hover: subtle lift, no harsh scale blowout */
+.clay-card:hover,
+.bg-white.rounded-3xl:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-lg) !important;
+}
+
+/* Stat Card Hover */
 .hover\:scale-105:hover {
   transform: translateY(-3px) !important;
-  box-shadow: var(--erp-shadow-lg) !important;
+  box-shadow: var(--clay-shadow-lg) !important;
 }
 
-/* Buttons in forms and action grids */
-.bg-blue-600,
-.bg-indigo-600 {
-  background: linear-gradient(135deg, var(--erp-primary) 0%, var(--erp-secondary) 100%) !important;
-  color: #FFFFFF !important;
-  box-shadow: var(--erp-clay-btn) !important;
-  border-radius: var(--erp-radius-sm) !important;
-  transition: all 0.2s ease !important;
+/* Buttons: Raised clay look at rest, inset/pressed on :active */
+button,
+.clay-btn {
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
 }
+
+button:not([disabled]):active,
+.clay-btn:not([disabled]):active {
+  box-shadow: var(--clay-inset) !important;
+  transform: translateY(1px) scale(0.98) !important;
+}
+
+/* Primary Brand Clay Buttons */
+.bg-blue-600,
+.bg-indigo-600,
+.clay-btn-primary,
+button[type="submit"] {
+  background: linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: var(--clay-radius-sm) !important;
+  box-shadow: var(--clay-btn-primary-shadow) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  cursor: pointer;
+}
+
 .bg-blue-600:hover,
 .bg-indigo-600:hover,
-.hover\:bg-blue-700:hover,
-.hover\:bg-indigo-700:hover {
-  background: linear-gradient(135deg, #5B52EE 0%, #7A69EE 100%) !important;
-  box-shadow: 0 6px 18px -2px rgba(108, 99, 255, 0.35) !important;
+.clay-btn-primary:hover,
+button[type="submit"]:hover {
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%) !important;
+  box-shadow: 8px 8px 18px rgba(99, 102, 241, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.9), inset 1px 1px 2px rgba(255, 255, 255, 0.4) !important;
   transform: translateY(-1px) !important;
 }
-button:not([disabled]):active {
-  transform: scale(0.97) translateY(1px) !important;
+
+.bg-blue-600:active,
+.bg-indigo-600:active,
+.clay-btn-primary:active,
+button[type="submit"]:active {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(1px) scale(0.98) !important;
 }
 
-/* Input elements in dashboard forms */
+/* Secondary / Action Buttons */
+.bg-slate-100,
+.bg-slate-50:not(thead):not(th),
+.bg-gray-100,
+.bg-slate-200 {
+  background: var(--clay-surface) !important;
+  border: none !important;
+  border-radius: var(--clay-radius-sm) !important;
+  box-shadow: var(--clay-shadow-sm) !important;
+}
+
+/* Form Inputs: Pressed-in (inset shadow) */
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
 input[type="date"],
 select,
-textarea {
-  border-radius: var(--erp-radius-sm) !important;
-  border: 1.5px solid rgba(108, 99, 255, 0.12) !important;
-  background: #F8F7FD !important;
-  color: var(--erp-text) !important;
-  padding: 0.625rem 0.875rem !important;
+textarea,
+.clay-input {
+  width: 100%;
+  border-radius: 18px !important;
+  border: none !important;
+  background: var(--clay-surface-inset) !important;
+  color: var(--clay-text) !important;
+  padding: 0.75rem 1rem !important;
   font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  box-shadow: var(--clay-inset) !important;
   transition: all 0.2s ease !important;
-  box-shadow: var(--erp-shadow-inset) !important;
+  outline: none !important;
 }
+
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="number"]:focus,
 input[type="date"]:focus,
 select:focus,
-textarea:focus {
-  border-color: var(--erp-primary) !important;
-  background: #FFFFFF !important;
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12) !important;
-  outline: none !important;
+textarea:focus,
+.clay-input:focus {
+  background: #F4F7FD !important;
+  box-shadow: var(--clay-inset-focus) !important;
 }
 
-/* Professional Tables */
+/* Labels: Increased letter-spacing for softer feel */
+label,
+.clay-label,
+th,
+.uppercase.tracking-widest {
+  letter-spacing: 0.06em !important;
+  font-weight: 700 !important;
+  color: #4A5568 !important;
+}
+
+/* Icons inside soft circular/rounded-square clay containers */
+.w-12.h-12,
+.w-14.h-14,
+.w-16.h-16,
+.w-10.h-10 {
+  border-radius: 20px !important;
+  border: none !important;
+  box-shadow: var(--clay-shadow-sm) !important;
+}
+
+/* Badge/Icon Container Color Variants */
+.bg-blue-50,
+.bg-indigo-50 {
+  background: #EEF2FF !important;
+  color: var(--clay-primary) !important;
+  border: none !important;
+}
+.bg-green-50,
+.bg-emerald-50 {
+  background: #ECFDF5 !important;
+  color: #10B981 !important;
+  border: none !important;
+}
+.bg-orange-50,
+.bg-amber-50 {
+  background: #FFF7ED !important;
+  color: #F59E0B !important;
+  border: none !important;
+}
+.bg-purple-50 {
+  background: #F5F3FF !important;
+  color: #8B5CF6 !important;
+  border: none !important;
+}
+.bg-red-50 {
+  background: #FEF2F2 !important;
+  color: #EF4444 !important;
+  border: none !important;
+}
+
+/* Professional Clay Tables */
 table {
   width: 100% !important;
   border-collapse: separate !important;
@@ -384,28 +423,28 @@ table {
 table thead tr,
 thead.bg-slate-50,
 thead.bg-slate-100 {
-  background: var(--erp-surface-soft) !important;
+  background: var(--clay-surface-soft) !important;
 }
 table thead th {
-  padding: 0.875rem 1.25rem !important;
-  color: var(--erp-muted) !important;
-  font-weight: 700 !important;
+  padding: 0.95rem 1.25rem !important;
+  color: #4A5568 !important;
+  font-weight: 800 !important;
   font-size: 0.6875rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
-  border-bottom: 1px solid rgba(237, 233, 254, 0.80) !important;
+  border-bottom: 2px solid rgba(163, 177, 198, 0.25) !important;
 }
 table tbody tr {
   transition: background-color 0.15s ease !important;
 }
 table tbody tr:hover {
-  background-color: rgba(240, 237, 248, 0.50) !important;
+  background-color: rgba(229, 234, 245, 0.55) !important;
 }
 table tbody td {
-  padding: 0.875rem 1.25rem !important;
-  border-bottom: 1px solid rgba(237, 233, 254, 0.50) !important;
+  padding: 0.95rem 1.25rem !important;
+  border-bottom: 1px solid rgba(163, 177, 198, 0.20) !important;
   font-size: 0.875rem !important;
-  color: var(--erp-text) !important;
+  color: var(--clay-text) !important;
 }
 table tbody tr:last-child td {
   border-bottom: none !important;
@@ -415,30 +454,21 @@ table tbody tr:last-child td {
 .fixed.inset-0.bg-slate-900\/60,
 .fixed.inset-0.bg-black\/50,
 .fixed.inset-0.bg-black\/60 {
-  backdrop-filter: blur(6px) !important;
-  background-color: rgba(17, 24, 39, 0.40) !important;
+  backdrop-filter: blur(8px) !important;
+  background-color: rgba(45, 55, 72, 0.40) !important;
 }
 .fixed.inset-0 .bg-white.rounded-3xl {
-  box-shadow: var(--erp-shadow-lg) !important;
-  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  background: var(--clay-surface) !important;
+  box-shadow: 16px 16px 36px rgba(163, 177, 198, 0.6), -16px -16px 36px rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
 }
 
-/* Badges */
-.bg-blue-50.text-blue-600 {
-  background: rgba(108, 99, 255, 0.10) !important;
-  color: var(--erp-primary) !important;
-}
-.bg-green-50.text-green-600,
-.bg-emerald-50.text-emerald-600 {
-  background: rgba(34, 197, 94, 0.10) !important;
-  color: #16A34A !important;
-}
-.bg-amber-50.text-amber-600,
-.bg-orange-50.text-orange-600 {
-  background: rgba(245, 158, 11, 0.10) !important;
-  color: #D97706 !important;
-}
-.bg-red-50.text-red-600 {
-  background: rgba(239, 68, 68, 0.10) !important;
-  color: #DC2626 !important;
+/* Spinner */
+.clay-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3.5px solid rgba(163, 177, 198, 0.35);
+  border-top-color: var(--clay-primary);
+  border-radius: 50%;
+  animation: erpSpin 0.8s linear infinite;
 }
