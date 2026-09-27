@@ -5,7 +5,7 @@ import AdminDashboard from '../components/AdminDashboard';
 import TeacherDashboard from '../components/TeacherDashboard';
 import StudentDashboard from '../components/StudentDashboard';
 import Clock from '../components/Clock';
-import { Menu, GraduationCap, ShieldCheck } from 'lucide-react';
+import { Menu, GraduationCap, ShieldCheck, Logout } from 'lucide-react';
 import api from '../api';
 
 const roleConfig = {
