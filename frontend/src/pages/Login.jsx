@@ -19,6 +19,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // Check for auto-logout message (e.g. signed in from another device)
+  React.useEffect(() => {
+    const sessionMsg = sessionStorage.getItem('session_invalidated_msg');
+    if (sessionMsg) {
+      setError(sessionMsg);
+      sessionStorage.removeItem('session_invalidated_msg');
+    }
+  }, []);
+
   // Authentication logic preserved 100% exactly
   const handleLogin = async (e) => {
     e.preventDefault();

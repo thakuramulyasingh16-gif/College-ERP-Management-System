@@ -5,32 +5,74 @@ const AuthContext = createContext();
 const API_BASE = "https://college-erp-management-system-a9xk.onrender.com/api";
 
 export const AuthProvider = ({ children }) => {
-  // loading=true while we're validating the stored token on mount
+  // loading=true while we're verifying the stored token with the backend
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // On mount: restore user from storage only if a token is also present
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
 
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (err) {
-        console.error("Failed to parse saved user", err);
-        localStorage.removeItem('user');
+      if (!token) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         localStorage.removeItem('teacher');
+        setUser(null);
+        setLoading(false);
+        return;
       }
-    } else {
-      // If token is missing but user data exists (or vice versa), clear everything
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('teacher');
-    }
-    // Done restoring state — ProtectedRoute can now make a routing decision
-    setLoading(false);
+
+      // Verify token and active session against the backend
+      try {
+        const res = await fetch(`${API_BASE}/auth/verify`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.valid && data.user) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            if (data.user.role === 'teacher') {
+              localStorage.setItem('teacher', JSON.stringify(data.user));
+            }
+            setLoading(false);
+            return;
+          }
+        }
+
+        // If response is not ok (401 invalid, expired, or session invalidated)
+        try {
+          const errData = await res.json();
+          if (errData && errData.code === 'SESSION_INVALIDATED') {
+            sessionStorage.setItem(
+              'session_invalidated_msg',
+              errData.message || 'You have been logged out because your account was signed in from another device.'
+            );
+          }
+        } catch (parseErr) {}
+
+        console.warn("Session verification failed on mount, clearing state");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('teacher');
+        setUser(null);
+      } catch (err) {
+        console.error("Network error during auth verification:", err);
+        // Fail securely: do not grant access to stale localStorage on unverified token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('teacher');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = (userData, token) => {
@@ -43,9 +85,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Logout: calls the backend to blacklist the current JWT so it cannot
-   * be reused after logout, then clears all client-side auth state.
-   * Even if the API call fails, local state is still cleared.
+   * Logout: calls the backend to blacklist the current JWT and clear active session,
+   * then clears all client-side auth state.
    */
   const logout = async () => {
     const token = localStorage.getItem('token');
@@ -60,13 +101,15 @@ export const AuthProvider = ({ children }) => {
         });
       }
     } catch (err) {
-      // Network error during logout — still clear local state
       console.warn("Logout API call failed:", err);
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('teacher');
       setUser(null);
+      if (window.location.pathname !== '/login') {
+        window.location.replace('/login');
+      }
     }
   };
 

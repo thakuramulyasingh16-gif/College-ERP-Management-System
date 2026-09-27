@@ -280,6 +280,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
         {/* Bottom Section: Clay Logout Button */}
         <div style={{
           padding: isOpen ? '0.875rem' : '0.875rem 0.5rem',
+          paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))',
           flexShrink: 0,
         }}>
           <button

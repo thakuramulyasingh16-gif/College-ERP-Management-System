@@ -7,8 +7,8 @@ export const getToken = () => {
 /**
  * Authenticated fetch wrapper.
  * Automatically attaches the Bearer token from localStorage.
- * On 401 (expired/invalid/blacklisted token), clears local storage
- * and redirects to /login so the user cannot stay on a protected page.
+ * On 401 (expired/invalid/session-invalidated token), clears local storage
+ * and redirects to /login with session error messaging.
  */
 export const authFetch = async (url, options = {}) => {
   const token = getToken();
@@ -25,19 +25,43 @@ export const authFetch = async (url, options = {}) => {
     delete headers["Content-Type"];
   }
 
-  const response = await fetch(url, { ...options, headers });
+  try {
+    const response = await fetch(url, { ...options, headers });
 
-  // If the server rejects the token, force logout on the client side
-  if (response.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("teacher");
-    // Hard redirect: ensures the page is fully unloaded and cannot be restored by Back
-    window.location.replace("/login");
+    // Handle 401: Unauthorized / Session Invalidated
+    if (response.status === 401) {
+      try {
+        const clone = response.clone();
+        const data = await clone.json();
+        if (data && data.code === "SESSION_INVALIDATED") {
+          sessionStorage.setItem(
+            "session_invalidated_msg",
+            data.message || "You have been logged out because your account was signed in from another device."
+          );
+        }
+      } catch (e) {
+        // Ignore json parse error on clone
+      }
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("teacher");
+
+      if (window.location.pathname !== "/login") {
+        window.location.replace("/login");
+      }
+      return response;
+    }
+
+    if (!response.ok) {
+      console.warn(`Request to ${url} returned status ${response.status}`);
+    }
+
     return response;
+  } catch (err) {
+    console.error(`authFetch Network Error for ${url}:`, err);
+    throw err;
   }
-
-  return response;
 };
 
 export const fetchData = async (endpoint) => {
@@ -45,7 +69,7 @@ export const fetchData = async (endpoint) => {
   try {
     const res = await authFetch(url);
     if (!res.ok) {
-      console.error("Fetch failed with status:", res.status);
+      console.error(`Fetch failed with status ${res.status} for ${endpoint}`);
       return [];
     }
     return await res.json();

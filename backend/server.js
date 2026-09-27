@@ -11,8 +11,12 @@ const app = express();
 
 // Database Connection Test
 db.getConnection()
-  .then(connection => {
+  .then(async (connection) => {
     console.log("DB Connected Successfully");
+    try {
+      await connection.query("ALTER TABLE users ADD COLUMN current_session_token TEXT DEFAULT NULL");
+      console.log("users.current_session_token verified/added.");
+    } catch (colErr) { /* column exists */ }
     connection.release();
   })
   .catch(err => {
@@ -59,6 +63,10 @@ app.use('/api/auth', authRoutes);
 
 // All ERP business routes (all protected by auth middleware in erpRoutes.js)
 app.use('/api', erpRoutes);
+
+// Polling endpoint for single active session check
+const authMiddleware = require('./middleware/auth');
+app.get('/api/session/check', authMiddleware(), (req, res) => res.json({ valid: true }));
 
 // NOTE: The old duplicate /api/login endpoint has been removed.
 // All login requests must go through /api/auth/login which uses bcrypt exclusively.

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchData, getToken } from '../utils/api';
+import { fetchData, getToken, authFetch } from '../utils/api';
 import { 
   Users, GraduationCap, BookOpen, TrendingUp, Plus, Trash2, PlusCircle, Search, Key, Building2,
   Edit, X, ClipboardCheck, Bell, CheckCircle, AlertCircle, Filter, Calendar
@@ -100,7 +100,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchStats = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/dashboard-stats", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/dashboard-stats", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -112,7 +112,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchDepartments = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/departments", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/departments", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -125,7 +125,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchCourses = async () => {
-    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/courses`, {
+    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/courses`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -138,7 +138,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchSessions = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/sessions", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/sessions", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -154,7 +154,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     const deptObj = departments?.find(d => d.id === parseInt(deptFilter));
     const deptName = deptObj ? deptObj.name : '';
     
-    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/teachers?search=${searchTerm}&department_id=${deptFilter}&department=${deptName}`, {
+    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/teachers?search=${searchTerm}&department_id=${deptFilter}&department=${deptName}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -172,7 +172,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     const courseObj = courses?.find(c => c.id === parseInt(courseFilter));
     const courseName = courseObj ? courseObj.name : '';
     
-    fetch(`https://college-erp-management-system-a9xk.onrender.com/api/students?search=${searchTerm}&course=${courseName}&session=${sessionFilter}`, {
+    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/students?search=${searchTerm}&course=${courseName}&session=${sessionFilter}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -187,7 +187,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchFees = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/fee-structures", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/fee-structures", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -200,7 +200,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchFeeRecords = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/fees", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/fees", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -213,7 +213,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchComplaints = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/complaints", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/admin/complaints", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
@@ -226,7 +226,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   };
 
   const fetchNotices = async () => {
-    fetch("https://college-erp-management-system-a9xk.onrender.com/api/notices", {
+    authFetch("https://college-erp-management-system-a9xk.onrender.com/api/notices", {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())

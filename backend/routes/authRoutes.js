@@ -7,7 +7,10 @@ const auth = require("../middleware/auth");
 router.post("/login", authController.login);
 router.post("/register", authController.register);
 
-// Protected logout route — requires a valid token so we know which one to blacklist
+// Protected routes
+router.get("/verify", auth(), authController.verify);
+router.get("/me", auth(), authController.verify);
+router.get("/session-check", auth(), (req, res) => res.json({ valid: true }));
 router.post("/logout", auth(), authController.logout);
 
 module.exports = router;

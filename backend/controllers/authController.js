@@ -5,8 +5,6 @@ const { blacklistToken } = require("../middleware/auth");
 
 exports.register = async (req, res) => {
   const { name, email, mobile, password } = req.body;
-
-  // Role is strictly forced to 'student' for public registration
   const role = 'student';
 
   if (!name || !email || !mobile || !password) {
@@ -47,7 +45,6 @@ exports.login = async (req, res) => {
   }
 
   try {
-    // Check both email and mobile for the login identifier
     const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ? OR mobile = ?",
       [loginIdentifier.trim(), loginIdentifier.trim()]
@@ -59,7 +56,6 @@ exports.login = async (req, res) => {
 
     const user = users[0];
 
-    // Always compare via bcrypt — passwords are never stored or compared in plaintext
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -97,12 +93,23 @@ exports.login = async (req, res) => {
       }
     }
 
-    // Identity is embedded in the token by the server — never trusted from the client
+    // Generate JWT token with timestamp to ensure uniqueness per login
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, loginAt: Date.now() },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // FEATURE: Single active session per user.
+    // Overwrite current_session_token in DB so any previous session on another device is invalidated.
+    try {
+      await db.execute(
+        "UPDATE users SET current_session_token = ? WHERE id = ?",
+        [token, user.id]
+      );
+    } catch (tokenErr) {
+      console.error("Failed to update current_session_token:", tokenErr);
+    }
 
     res.json({ token, user: detailedUser });
   } catch (error) {
@@ -112,16 +119,67 @@ exports.login = async (req, res) => {
 };
 
 /**
- * Logout: blacklists the current JWT so it cannot be reused after logout.
- * The token is extracted from the Authorization header by the auth middleware,
- * which also makes req.user available — so we know we have a valid token here.
+ * Verify session endpoint: validates token against DB and returns latest user details.
  */
-exports.logout = (req, res) => {
+exports.verify = async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      "SELECT id, name, email, mobile, role, profile_image FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (!users || users.length === 0) {
+      return res.status(401).json({ code: "USER_NOT_FOUND", message: "User not found" });
+    }
+
+    const user = users[0];
+    let detailedUser = { ...user };
+
+    if (user.role === 'student') {
+      const [studentInfo] = await db.execute(`
+        SELECT st.id as student_record_id, st.course_id, st.roll_no, st.session, st.current_semester,
+               c.name as course, d.name as department
+        FROM students st
+        LEFT JOIN courses c ON st.course_id = c.id
+        LEFT JOIN departments d ON c.department_id = d.id
+        WHERE st.user_id = ?`, [user.id]);
+      if (studentInfo.length > 0) {
+        detailedUser = { ...detailedUser, ...studentInfo[0] };
+      }
+    } else if (user.role === 'teacher') {
+      const [staffInfo] = await db.execute(`
+        SELECT st.id as staff_record_id, st.department_id, st.designation, st.profession,
+               d.name as department
+        FROM staff st
+        LEFT JOIN departments d ON st.department_id = d.id
+        WHERE st.user_id = ?`, [user.id]);
+      if (staffInfo.length > 0) {
+        detailedUser = { ...detailedUser, ...staffInfo[0] };
+      }
+    }
+
+    res.json({ valid: true, user: detailedUser });
+  } catch (error) {
+    console.error("Verify Error:", error);
+    res.status(500).json({ message: "Server Error verifying session" });
+  }
+};
+
+/**
+ * Logout: blacklists token and clears active session token in DB.
+ */
+exports.logout = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
       blacklistToken(token);
+    }
+    if (req.user && req.user.id) {
+      await db.execute(
+        "UPDATE users SET current_session_token = NULL WHERE id = ?",
+        [req.user.id]
+      ).catch(() => {});
     }
     res.json({ message: "Logged out successfully" });
   } catch (error) {
