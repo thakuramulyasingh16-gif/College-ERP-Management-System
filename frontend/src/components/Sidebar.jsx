@@ -17,6 +17,7 @@ import {
   Pencil
 } from 'lucide-react';
 
+// ── ALL MENU ITEMS UNCHANGED ────────────────────────────────
 const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar }) => {
   console.log("Sidebar rendering for role:", role);
   const menuItems = {
@@ -57,98 +58,264 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
 
   return (
     <>
-      {/* Mobile Overlay */}
-      <div 
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 lg:hidden transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+      {/* ── Mobile Overlay ── */}
+      <div
         onClick={toggleSidebar}
-       />
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(17,24,39,0.55)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 50,
+          transition: 'opacity 0.3s ease',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
+        className="lg:hidden"
+      />
 
-      {/* Sidebar Container */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.1)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${isOpen ? 'w-72' : 'w-20'} 
-        bg-[#1E3A8A] text-white
-        lg:relative lg:translate-x-0
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        m-0 lg:m-4 lg:rounded-3xl overflow-hidden
-      `}>
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(circle_at_center,#fff_1px,transparent_1px)] [background-size:20px_20px]"  />
-        
-        {/* Top Spacer for Mobile Toggle */}
-        <div className="lg:hidden flex justify-end p-4">
-          <button onClick={toggleSidebar} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-            <X size={24}  />
+      {/* ── Clay Sidebar Container ── */}
+      <aside
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          width: isOpen ? '280px' : '80px',
+          background: 'linear-gradient(160deg, #6C63FF 0%, #8B5CF6 60%, #7C3AED 100%)',
+          boxShadow: '8px 0 40px -4px rgba(108,99,255,0.25)',
+          transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
+          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+          overflow: 'hidden',
+        }}
+        className="lg:relative lg:translate-x-0 lg:m-4 lg:rounded-[28px]"
+      >
+        {/* ── Background shimmer overlay ── */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 50%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+          pointerEvents: 'none',
+          opacity: 0.6,
+        }} />
+
+        {/* ── Mobile close button ── */}
+        <div className="lg:hidden flex justify-end p-4" style={{ position: 'relative', zIndex: 1 }}>
+          <button
+            onClick={toggleSidebar}
+            style={{
+              padding: '0.5rem',
+              background: 'rgba(255,255,255,0.12)',
+              borderRadius: '12px',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          >
+            <X size={20} />
           </button>
         </div>
 
-        {/* Menu Items */}
-        <div className="flex-1 py-8 px-4 space-y-2 overflow-y-auto custom-scrollbar relative">
-          {items.map((item) => (
-            <div key={item.id} className="relative group">
-              <button
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (window.innerWidth < 1024) toggleSidebar();
-                }}
-                className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden active:scale-95
-                  ${activeTab === item.id 
-                    ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_8px_20px_-6px_rgba(99,102,241,0.6)]' 
-                    : 'text-blue-100/70 hover:bg-white/5 hover:text-white'
-                }
-                ${isOpen ? 'justify-start' : 'justify-center'}
-                `}
-              >
-                {item.icon ? (
-                  <item.icon size={22} strokeWidth={2.5} className={`
-                    shrink-0 transition-all duration-300
-                    ${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'}
-                  `}  />
-                ) : (
-                  <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center text-[8px] font-black">{item.label?.charAt(0)}</div>
-                )}
-                
-                <span className={`
-                  font-bold text-sm whitespace-nowrap transition-all duration-300
-                  ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10 absolute w-0'}
-                `}>
-                  {item.label}
-                </span>
-
-                {activeTab === item.id && (
-                  <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none"  />
-                )}
-              </button>
-
-              {/* Tooltip for collapsed state */}
-              {!isOpen && (
-                <div className="fixed left-24 px-4 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0 z-[60] shadow-2xl whitespace-nowrap pointer-events-none border border-white/10">
-                  {item.label}
-                  <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"  />
-                </div>
-              )}
+        {/* ── Brand Mark (collapsed state) ── */}
+        {!isOpen && (
+          <div style={{
+            padding: '1.5rem 0',
+            display: 'flex',
+            justifyContent: 'center',
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            <div style={{
+              width: '44px', height: '44px',
+              background: 'rgba(255,255,255,0.20)',
+              borderRadius: '14px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.30)',
+              fontWeight: 900,
+              color: 'white',
+              fontSize: '1.1rem',
+              letterSpacing: '-0.02em',
+            }}>
+              C
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
-        {/* Footer: Logout */}
-        <div className="p-4 mt-auto">
-          <button 
+        {/* ── Navigation Items ── */}
+        <nav
+          className="custom-scrollbar"
+          style={{
+            flex: 1,
+            padding: isOpen ? '1.5rem 1rem' : '1rem 0.5rem',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.375rem',
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          {items.map((item, idx) => {
+            const isActive = activeTab === item.id;
+            return (
+              <div key={item.id} style={{ position: 'relative' }} className="group">
+                <button
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (window.innerWidth < 1024) toggleSidebar();
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: isOpen ? '0.875rem' : '0',
+                    justifyContent: isOpen ? 'flex-start' : 'center',
+                    padding: isOpen ? '0.75rem 1rem' : '0.75rem',
+                    borderRadius: '16px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+                    background: isActive
+                      ? 'rgba(255,255,255,0.22)'
+                      : 'transparent',
+                    boxShadow: isActive
+                      ? 'inset 0 1px 0 rgba(255,255,255,0.30), 0 4px 16px rgba(0,0,0,0.10)'
+                      : 'none',
+                    color: isActive ? 'white' : 'rgba(255,255,255,0.65)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.10)';
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.90)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.96)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute', left: 0, top: '20%', bottom: '20%',
+                      width: '3px',
+                      background: 'white',
+                      borderRadius: '0 4px 4px 0',
+                    }} />
+                  )}
+
+                  {/* Icon */}
+                  <item.icon
+                    size={20}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    style={{
+                      flexShrink: 0,
+                      transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  />
+
+                  {/* Label */}
+                  {isOpen && (
+                    <span style={{
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? 700 : 600,
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.3s ease',
+                      letterSpacing: '0.01em',
+                    }}>
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+
+                {/* Tooltip for collapsed state */}
+                {!isOpen && (
+                  <div
+                    style={{
+                      position: 'fixed',
+                      left: '90px',
+                      padding: '0.5rem 0.875rem',
+                      background: '#1F2937',
+                      color: 'white',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.05em',
+                      borderRadius: '12px',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.20)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      zIndex: 60,
+                    }}
+                    className="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                  >
+                    {item.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* ── Logout Button ── */}
+        <div style={{
+          padding: isOpen ? '1rem' : '0.75rem 0.5rem',
+          position: 'relative', zIndex: 1,
+          borderTop: '1px solid rgba(255,255,255,0.10)',
+        }}>
+          <button
             onClick={logout}
-            className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 group active:scale-95
-              text-red-300 bg-white/5 hover:bg-red-500/20 hover:text-red-100 font-bold text-sm
-              ${isOpen ? 'justify-start' : 'justify-center'}
-            `}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: isOpen ? '0.875rem' : '0',
+              justifyContent: isOpen ? 'flex-start' : 'center',
+              padding: isOpen ? '0.75rem 1rem' : '0.75rem',
+              borderRadius: '16px',
+              border: 'none',
+              cursor: 'pointer',
+              background: 'rgba(239,68,68,0.15)',
+              color: 'rgba(252,165,165,1)',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239,68,68,0.28)';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(239,68,68,0.15)';
+              e.currentTarget.style.color = 'rgba(252,165,165,1)';
+            }}
+            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
+            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <LogOut size={22} strokeWidth={2.5} className="shrink-0 transition-transform group-hover:rotate-12"  />
-            <span className={`
-              whitespace-nowrap transition-all duration-500
-              ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10 absolute w-0'}
-            `}>
-              Logout
-            </span>
+            <LogOut size={20} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+            {isOpen && <span>Logout</span>}
           </button>
         </div>
       </aside>

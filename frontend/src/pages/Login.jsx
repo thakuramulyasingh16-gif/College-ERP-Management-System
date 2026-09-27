@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import { LogIn, Lock, Mail, AlertCircle, GraduationCap } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Login = () => {
@@ -12,6 +12,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // ── LOGIC UNCHANGED ────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -37,10 +38,8 @@ const Login = () => {
         return;
       }
 
-      // Store credentials via AuthContext — single source of truth
       login(data.user, data.token);
 
-      // Navigate using React Router (no full page reload) so ProtectedRoute guards apply
       const role = data.user.role;
       if (role === "admin") navigate('/admin', { replace: true });
       else if (role === "teacher") navigate('/teacher', { replace: true });
@@ -53,77 +52,368 @@ const Login = () => {
       setLoading(false);
     }
   };
+  // ── END LOGIC ───────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Background Accents */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-      <div className="absolute -top-24 -left-24 w-64 h-64 md:w-96 md:h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
-      <div className="absolute -bottom-24 -right-24 w-64 h-64 md:w-96 md:h-96 bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden"
+      style={{ background: 'var(--clay-bg)' }}
+    >
+      {/* ── Decorative Background Blobs ── */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: '-120px', left: '-120px',
+          width: '500px', height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 70%)',
+          animation: 'floatBlob 8s ease-in-out infinite',
+        }}
+      />
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          bottom: '-100px', right: '-100px',
+          width: '450px', height: '450px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)',
+          animation: 'floatBlob 10s ease-in-out infinite reverse',
+        }}
+      />
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: '40%', left: '60%',
+          width: '280px', height: '280px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)',
+          animation: 'floatBlob 12s ease-in-out infinite',
+        }}
+      />
 
-      <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
-        <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-6 sm:p-10 border border-slate-100 relative z-10">
-          <div className="text-center mb-8 sm:mb-10">
-            <div className="bg-white p-3 sm:p-4 rounded-3xl shadow-xl inline-block mb-4 sm:mb-6 border border-slate-50">
+      {/* ── Clay Login Card ── */}
+      <div
+        className="w-full max-w-md relative z-10"
+        style={{ animation: 'clayIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both' }}
+      >
+        <div
+          style={{
+            background: 'var(--clay-surface)',
+            borderRadius: 'var(--clay-r-xl)',
+            boxShadow: 'var(--clay-shadow-lg)',
+            border: '1px solid rgba(237,233,254,0.70)',
+            padding: '2.5rem 2.5rem',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Top highlight strip */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0,
+            height: '4px',
+            background: 'linear-gradient(to right, var(--clay-primary), var(--clay-secondary), var(--clay-accent))',
+            borderRadius: '40px 40px 0 0',
+          }} />
+
+          {/* Inner surface shine */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, transparent 40%)',
+            borderRadius: 'inherit',
+            pointerEvents: 'none',
+          }} />
+
+          {/* ── Header ── */}
+          <div className="text-center mb-8" style={{ position: 'relative', zIndex: 1 }}>
+            {/* Logo Container */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '88px', height: '88px',
+              borderRadius: '28px',
+              background: 'linear-gradient(135deg, rgba(108,99,255,0.08) 0%, rgba(139,92,246,0.06) 100%)',
+              boxShadow: '0 8px 32px -4px rgba(108,99,255,0.20), inset 0 1px 0 rgba(255,255,255,0.80)',
+              border: '1px solid rgba(237,233,254,0.80)',
+              marginBottom: '1.25rem',
+            }}>
               <img
                 src={logo}
                 alt="CGC Logo"
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+                style={{ width: '56px', height: '56px', objectFit: 'contain' }}
               />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">CGC ERP Login</h1>
-            <p className="text-slate-400 font-bold mt-2 text-[10px] sm:text-sm uppercase tracking-widest">City Group of Colleges</p>
+
+            <h1 style={{
+              fontSize: '1.75rem',
+              fontWeight: 900,
+              color: 'var(--clay-text)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1,
+              marginBottom: '0.5rem',
+            }}>
+              CGC ERP Portal
+            </h1>
+            <p style={{
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              color: 'var(--clay-muted)',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+            }}>
+              City Group of Colleges
+            </p>
+
+            {/* Role pills */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              {['Admin', 'Teacher', 'Student'].map((r) => (
+                <span key={r} style={{
+                  padding: '0.25rem 0.75rem',
+                  background: 'rgba(108,99,255,0.08)',
+                  color: 'var(--clay-primary)',
+                  borderRadius: '999px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                }}>
+                  {r}
+                </span>
+              ))}
+            </div>
           </div>
 
+          {/* ── Error Message ── */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-shake">
-              <AlertCircle className="text-red-500 shrink-0" size={20} />
-              <p className="text-red-600 text-xs font-black uppercase tracking-wider">{error}</p>
+            <div style={{
+              marginBottom: '1.5rem',
+              padding: '0.875rem 1rem',
+              background: 'rgba(239,68,68,0.08)',
+              border: '1.5px solid rgba(239,68,68,0.20)',
+              borderRadius: 'var(--clay-r-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.625rem',
+              animation: 'clayIn 0.3s ease both',
+              position: 'relative',
+              zIndex: 1,
+            }}>
+              <AlertCircle size={18} style={{ color: 'var(--clay-danger)', flexShrink: 0 }} />
+              <p style={{
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                color: '#DC2626',
+                letterSpacing: '0.02em',
+              }}>{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Official Email</label>
-              <div className="relative group">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+          {/* ── Form ── */}
+          <form onSubmit={handleLogin} className="space-y-5" style={{ position: 'relative', zIndex: 1 }}>
+            {/* Email Field */}
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.6875rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.10em',
+                color: 'var(--clay-muted)',
+                marginBottom: '0.5rem',
+                paddingLeft: '0.25rem',
+              }}>
+                Official Email
+              </label>
+              <div className="relative">
+                <Mail
+                  size={18}
+                  className="absolute"
+                  style={{
+                    left: '1rem', top: '50%', transform: 'translateY(-50%)',
+                    color: 'var(--clay-muted)', pointerEvents: 'none',
+                    transition: 'color 0.2s',
+                  }}
+                />
                 <input
                   type="email"
                   placeholder="name@citycolleges.info"
-                  className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all text-sm font-bold text-slate-700 placeholder:text-slate-300 shadow-inner"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '2.75rem',
+                    paddingRight: '1rem',
+                    paddingTop: '0.875rem',
+                    paddingBottom: '0.875rem',
+                    background: 'rgba(244,241,251,0.60)',
+                    border: '2px solid var(--clay-border)',
+                    borderRadius: 'var(--clay-r-sm)',
+                    color: 'var(--clay-text)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    transition: 'all 0.2s ease',
+                    outline: 'none',
+                    boxShadow: 'inset 0 2px 4px rgba(108,99,255,0.05)',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--clay-primary)';
+                    e.target.style.background = 'var(--clay-surface)';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(108,99,255,0.12)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--clay-border)';
+                    e.target.style.background = 'rgba(244,241,251,0.60)';
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(108,99,255,0.05)';
+                  }}
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Security Password</label>
-              <div className="relative group">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+            {/* Password Field */}
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.6875rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.10em',
+                color: 'var(--clay-muted)',
+                marginBottom: '0.5rem',
+                paddingLeft: '0.25rem',
+              }}>
+                Security Password
+              </label>
+              <div className="relative">
+                <Lock
+                  size={18}
+                  className="absolute"
+                  style={{
+                    left: '1rem', top: '50%', transform: 'translateY(-50%)',
+                    color: 'var(--clay-muted)', pointerEvents: 'none',
+                  }}
+                />
                 <input
                   type="password"
-                  placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
-                  className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all text-sm font-bold text-slate-700 placeholder:text-slate-300 shadow-inner"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '2.75rem',
+                    paddingRight: '1rem',
+                    paddingTop: '0.875rem',
+                    paddingBottom: '0.875rem',
+                    background: 'rgba(244,241,251,0.60)',
+                    border: '2px solid var(--clay-border)',
+                    borderRadius: 'var(--clay-r-sm)',
+                    color: 'var(--clay-text)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    transition: 'all 0.2s ease',
+                    outline: 'none',
+                    boxShadow: 'inset 0 2px 4px rgba(108,99,255,0.05)',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--clay-primary)';
+                    e.target.style.background = 'var(--clay-surface)';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(108,99,255,0.12)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--clay-border)';
+                    e.target.style.background = 'rgba(244,241,251,0.60)';
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(108,99,255,0.05)';
+                  }}
                 />
               </div>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-500/30 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:translate-y-0 mt-4 flex items-center justify-center gap-3"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.625rem',
+                padding: '1rem',
+                marginTop: '0.5rem',
+                background: loading
+                  ? 'rgba(108,99,255,0.60)'
+                  : 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-secondary) 100%)',
+                color: 'white',
+                borderRadius: 'var(--clay-r-sm)',
+                fontWeight: 800,
+                fontSize: '0.875rem',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: loading ? 'none' : 'var(--clay-btn)',
+                transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = 'var(--clay-btn-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'var(--clay-btn)';
+              }}
+              onMouseDown={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(0.97) translateY(1px)';
+              }}
+              onMouseUp={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
             >
-              {loading ? 'Authenticating...' : <><LogIn size={20} strokeWidth={3} /> Secure Sign In</>}
+              {/* Button shine layer */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.20) 0%, transparent 100%)',
+                pointerEvents: 'none',
+              }} />
+              {loading ? (
+                <>
+                  <div className="clay-spinner" style={{ width: '18px', height: '18px', borderWidth: '2px' }} />
+                  Authenticating...
+                </>
+              ) : (
+                <>
+                  <LogIn size={18} strokeWidth={2.5} />
+                  Secure Sign In
+                </>
+              )}
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-slate-50 text-center">
-            <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.2em]">Authorized Access Only</p>
+          {/* ── Footer ── */}
+          <div style={{
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid rgba(237,233,254,0.60)',
+            textAlign: 'center',
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            <div className="flex items-center justify-center gap-2">
+              <GraduationCap size={14} style={{ color: 'var(--clay-accent)' }} />
+              <p style={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                color: 'var(--clay-muted)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}>
+                Authorized Personnel Only
+              </p>
+            </div>
           </div>
         </div>
       </div>
