@@ -5,9 +5,9 @@ import { LogIn, Lock, Mail, AlertCircle, Shield, UserCheck, GraduationCap } from
 import logo from '../assets/logo.png';
 
 const ROLE_TABS = [
-  { id: 'admin', label: 'Admin', placeholder: 'Admin Id', icon: Shield },
-  { id: 'teacher', label: 'Teacher', placeholder: 'Teacher Id', icon: UserCheck },
-  { id: 'student', label: 'Student', placeholder: 'Student Id', icon: GraduationCap },
+  { id: 'admin', label: 'Admin', placeholder:'Admin Id', icon: Shield },
+  { id: 'teacher', label: 'Teacher', placeholder:'Teacher Id', icon: UserCheck },
+  { id: 'student', label: 'Student', placeholder:Student Id, icon: GraduationCap },
 ];
 
 const Login = () => {
