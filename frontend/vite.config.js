@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://college-erp-management-system-a9xk.onrender.com',
         changeOrigin: true,
       },
     },
