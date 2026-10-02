@@ -7,6 +7,7 @@ import StudentDashboard from '../components/StudentDashboard';
 import Clock from '../components/Clock';
 import { Menu, GraduationCap, ShieldCheck, LogOut } from 'lucide-react';
 import api from '../api';
+import { getMediaUrl } from '../utils/api';
 
 const roleConfig = {
   admin:   { label: 'Admin',   color: '#6366F1', bg: '#EEF2FF' },
@@ -210,7 +211,7 @@ const Dashboard = () => {
               />
               {user?.profile_image ? (
                 <img
-                  src={"https://college-erp-management-system-a9xk.onrender.com" + user?.profile_image}
+                  src={getMediaUrl(user?.profile_image)}
                   alt="Profile"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />

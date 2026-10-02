@@ -4,6 +4,15 @@ const path = require("path");
 const fs = require("fs");
 
 // --- UTILS ---
+const safeError = (res, error, defaultMsg = "Something went wrong, please try again", status = 500) => {
+  console.error("ERP Controller Error:", error);
+  const isDev = process.env.NODE_ENV === 'development';
+  return res.status(status).json({
+    success: false,
+    message: isDev ? (error.message || defaultMsg) : defaultMsg
+  });
+};
+
 const hashPassword = async (password) => {
   if (!password || typeof password !== 'string') {
     throw new Error("BCRYPT_ERROR: Password must be a non-empty string.");
@@ -22,7 +31,7 @@ exports.getDashboardStats = async (req, res) => {
       success: true, 
       data: { users, departments: depts[0].count, courses: courses[0].count } 
     });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Sessions
@@ -30,9 +39,9 @@ exports.getSessions = async (req, res) => {
   console.log("API HIT: GET /api/sessions");
   try {
     const [rows] = await db.execute("SELECT * FROM sessions ORDER BY session_name DESC");
-    console.log("Sessions Data:", rows);
+    // Sessions fetched
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.createSession = async (req, res) => {
@@ -40,7 +49,7 @@ exports.createSession = async (req, res) => {
   try {
     const [result] = await db.execute("INSERT INTO sessions (session_name, duration_years) VALUES (?, ?)", [session_name, duration_years]);
     res.status(201).json({ success: true, data: { id: result.insertId, session_name } });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Departments
@@ -48,9 +57,9 @@ exports.getDepartments = async (req, res) => {
   console.log("API HIT: GET /api/departments");
   try {
     const [rows] = await db.execute("SELECT * FROM departments");
-    console.log("Departments Data:", rows);
+    // Departments fetched
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.createDepartment = async (req, res) => {
@@ -58,7 +67,7 @@ exports.createDepartment = async (req, res) => {
   try {
     const [result] = await db.execute("INSERT INTO departments (name) VALUES (?)", [name]);
     res.status(201).json({ success: true, data: { id: result.insertId, name } });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateDepartment = async (req, res) => {
@@ -67,7 +76,7 @@ exports.updateDepartment = async (req, res) => {
   try {
     await db.execute("UPDATE departments SET name = ? WHERE id = ?", [name, id]);
     res.status(200).json({ success: true, message: "Department updated" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteDepartment = async (req, res) => {
@@ -75,7 +84,7 @@ exports.deleteDepartment = async (req, res) => {
   try {
     await db.execute("DELETE FROM departments WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Department deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Courses
@@ -84,7 +93,7 @@ exports.getCourses = async (req, res) => {
   try {
     const [rows] = await db.execute(query);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.createCourse = async (req, res) => {
@@ -92,7 +101,7 @@ exports.createCourse = async (req, res) => {
   try {
     const [result] = await db.execute("INSERT INTO courses (name, department_id, duration_years) VALUES (?, ?, ?)", [name, department_id, duration_years]);
     res.status(201).json({ success: true, data: { id: result.insertId, name } });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateCourse = async (req, res) => {
@@ -101,7 +110,7 @@ exports.updateCourse = async (req, res) => {
   try {
     await db.execute("UPDATE courses SET name = ?, department_id = ?, duration_years = ? WHERE id = ?", [name, department_id, duration_years, id]);
     res.status(200).json({ success: true, message: "Course updated" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteCourse = async (req, res) => {
@@ -109,7 +118,7 @@ exports.deleteCourse = async (req, res) => {
   try {
     await db.execute("DELETE FROM courses WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Course deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Subjects
@@ -126,7 +135,7 @@ exports.getSubjects = async (req, res) => {
     res.status(200).json({ success: true, data: rows || [] });
   } catch (error) { 
     console.error("DEBUG: Error in getSubjects:", error);
-    res.status(500).json({ success: false, message: error.message }); 
+    return safeError(res, error); 
   }
 };
 
@@ -179,7 +188,7 @@ exports.createSubject = async (req, res) => {
     }
   } catch (error) { 
     console.error("DEBUG: createSubject Error:", error);
-    res.status(500).json({ success: false, message: "Database Error: " + error.message }); 
+    return safeError(res, error, "Database error occurred"); 
   }
 };
 
@@ -192,7 +201,7 @@ exports.updateSubject = async (req, res) => {
         [name, subject_code, course_id, session, id]
     );
     res.status(200).json({ success: true, message: "Subject updated successfully" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteSubject = async (req, res) => {
@@ -200,7 +209,7 @@ exports.deleteSubject = async (req, res) => {
   try {
     await db.execute("DELETE FROM subjects WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Subject deleted successfully" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Teachers/Staff
@@ -215,11 +224,11 @@ exports.getStaff = async (req, res) => {
   `;
   try {
     const [rows] = await db.execute(query);
-    console.log("Teachers Data:", rows); // DEBUG
+    // Teachers data fetched
     res.status(200).json({ success: true, data: rows });
   } catch (error) { 
     console.error("Error fetching staff:", error);
-    res.status(500).json({ success: false, message: error.message }); 
+    return safeError(res, error); 
   }
 };
 
@@ -237,7 +246,7 @@ exports.createTeacher = async (req, res) => {
       [userResult.insertId, department_id, designation, profession]
     );
     res.status(201).json({ success: true, message: "Teacher created" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateTeacher = async (req, res) => {
@@ -264,7 +273,7 @@ exports.updateTeacher = async (req, res) => {
       [department_id, designation, profession, id]
     );
     res.status(200).json({ success: true, message: "Teacher updated successfully" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteTeacher = async (req, res) => {
@@ -277,7 +286,7 @@ exports.deleteTeacher = async (req, res) => {
     }
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Teacher deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Students
@@ -336,7 +345,7 @@ exports.createStudent = async (req, res) => {
     );
     console.log("Student saved with session:", session);
     res.status(201).json({ success: true, message: "Student created" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateStudent = async (req, res) => {
@@ -377,7 +386,7 @@ exports.updateStudent = async (req, res) => {
       [course_id, admissionYear, session, roll_no, id]
     );
     res.status(200).json({ success: true, message: "Student updated successfully" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteStudent = async (req, res) => {
@@ -390,7 +399,7 @@ exports.deleteStudent = async (req, res) => {
     }
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Student deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.resetPassword = async (req, res) => {
@@ -399,7 +408,7 @@ exports.resetPassword = async (req, res) => {
     const hashedPassword = await hashPassword(newPassword);
     await db.execute("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
     res.status(200).json({ success: true, message: "Password reset successful" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Fees
@@ -409,7 +418,7 @@ exports.getFeeStructures = async (req, res) => {
     const [rows] = await db.execute("SELECT fs.*, c.name as course_name FROM fee_structures fs JOIN courses c ON fs.course_id = c.id");
     console.log("Fee Structures Data:", rows);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.createFeeStructure = async (req, res) => {
@@ -417,7 +426,7 @@ exports.createFeeStructure = async (req, res) => {
   try {
     await db.execute("INSERT INTO fee_structures (course_id, category, amount, description) VALUES (?, ?, ?, ?)", [course_id, category, amount, description]);
     res.status(201).json({ success: true, message: "Fee structure created" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateFeeStructure = async (req, res) => {
@@ -426,7 +435,7 @@ exports.updateFeeStructure = async (req, res) => {
   try {
     await db.execute("UPDATE fee_structures SET course_id = ?, category = ?, amount = ?, description = ? WHERE id = ?", [course_id, category, amount, description, id]);
     res.status(200).json({ success: true, message: "Fee structure updated" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteFeeStructure = async (req, res) => {
@@ -434,7 +443,7 @@ exports.deleteFeeStructure = async (req, res) => {
   try {
     await db.execute("DELETE FROM fee_structures WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Fee structure deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Notices
@@ -444,7 +453,7 @@ exports.getNotices = async (req, res) => {
     const [rows] = await db.execute("SELECT * FROM notices ORDER BY created_at DESC");
     console.log("Notices Data:", rows);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.createNotice = async (req, res) => {
@@ -452,7 +461,7 @@ exports.createNotice = async (req, res) => {
   try {
     await db.execute("INSERT INTO notices (title, content, target_role) VALUES (?, ?, ?)", [title, content, target_role || 'all']);
     res.status(201).json({ success: true, message: "Notice created" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteNotice = async (req, res) => {
@@ -460,7 +469,7 @@ exports.deleteNotice = async (req, res) => {
   try {
     await db.execute("DELETE FROM notices WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Notice deleted" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // --- TEACHER CONTROLLERS ---
@@ -480,7 +489,7 @@ exports.getTeacherStudents = async (req, res) => {
     res.status(200).json({ success: true, data: rows || [] });
   } catch (error) {
     console.error("DEBUG: Error fetching teacher students:", error);
-    res.status(500).json({ success: false, message: error.message });
+    return safeError(res, error);
   }
 };
 
@@ -490,7 +499,7 @@ exports.getTeacherCourses = async (req, res) => {
     let query = "SELECT * FROM courses";
     const [rows] = await db.execute(query);
     res.status(200).json({ success: true, data: rows || [] });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.getStudentsByCourse = async (req, res) => {
@@ -503,7 +512,7 @@ exports.getStudentsByCourse = async (req, res) => {
     
     const [rows] = await db.execute(query);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.submitBulkAttendance = async (req, res) => {
@@ -544,7 +553,7 @@ exports.submitBulkAttendance = async (req, res) => {
     res.status(200).json({ success: true, message: "Attendance recorded successfully" });
   } catch (error) { 
     console.error("Bulk attendance error:", error);
-    res.status(500).json({ success: false, message: error.message }); 
+    return safeError(res, error); 
   }
 };
 
@@ -554,7 +563,7 @@ exports.getTeacherSubjects = async (req, res) => {
     const [rows] = await db.execute(`SELECT s.*, c.name as course_name FROM subjects s JOIN courses c ON s.course_id = c.id`);
     console.log("Teacher Subjects:", rows);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.uploadAttendance = async (req, res) => {
@@ -576,7 +585,7 @@ exports.uploadAttendance = async (req, res) => {
     res.status(200).json({ success: true, message: "Attendance uploaded" });
   } catch (error) { 
     console.error("Upload attendance error:", error);
-    res.status(500).json({ success: false, message: error.message }); 
+    return safeError(res, error); 
   }
 };
 
@@ -622,10 +631,22 @@ exports.uploadMarks = async (req, res) => {
 };
 
 exports.getMarks = async (req, res) => {
-    const { student_id } = req.query;
+    let { student_id } = req.query;
     console.log("DEBUG: getMarks HIT for student_id:", student_id);
 
     try {
+        let targetStudentId = student_id;
+
+        // IDOR Protection: Students can only view their own marks
+        if (req.user.role === 'student') {
+            const [student] = await db.execute("SELECT id, roll_no FROM students WHERE user_id = ?", [req.user.id]);
+            if (!student.length) return res.status(200).json({ success: true, data: [] });
+
+            if (student_id && String(student_id) !== String(student[0].id) && String(student_id) !== String(student[0].roll_no)) {
+                return res.status(403).json({ success: false, message: "Access forbidden: You can only view your own marks." });
+            }
+            targetStudentId = student[0].id;
+        }
         let query = `
             SELECT s.name as subject, r.marks_obtained as marks, r.max_marks, c.name as course, r.session, r.exam_name, r.student_id, st.roll_no
             FROM results r
@@ -635,16 +656,16 @@ exports.getMarks = async (req, res) => {
         `;
 
         const params = [];
-        if (student_id) {
+        if (targetStudentId) {
             query += " WHERE r.student_id = ? OR st.roll_no = ?";
-            params.push(student_id, student_id);
+            params.push(targetStudentId, targetStudentId);
         }
 
         const [rows] = await db.execute(query, params);
         res.json({ success: true, data: rows || [] });
     } catch (error) {
         console.error("DEBUG: getMarks Error:", error);
-        res.status(500).json({ success: false, message: error.message });
+        return safeError(res, error);
     }
 };
 exports.uploadNote = async (req, res) => {
@@ -667,7 +688,7 @@ exports.uploadNote = async (req, res) => {
         [title, file_url, url || null, subject_id || null, course_id, session, uploaded_by]
     );
     res.status(200).json({ success: true, message: "Material uploaded successfully" });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.updateNote = async (req, res) => {
@@ -676,8 +697,14 @@ exports.updateNote = async (req, res) => {
     const file_url = req.file ? `/uploads/materials/${req.file.filename}` : null;
 
     try {
-        const [oldNote] = await db.execute("SELECT file_url FROM notes WHERE id = ?", [id]);
+        const [oldNote] = await db.execute("SELECT file_url, uploaded_by FROM notes WHERE id = ?", [id]);
         if (oldNote.length === 0) return res.status(404).json({ success: false, message: "Material not found" });
+        if (req.user.role === 'teacher') {
+            const [staff] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [req.user.id]);
+            if (!staff.length || (oldNote[0].uploaded_by && oldNote[0].uploaded_by !== staff[0].id)) {
+                return res.status(403).json({ success: false, message: "Access forbidden: You can only edit study materials you uploaded." });
+            }
+        }
 
         let query = "UPDATE notes SET title = ?, subject_id = ?, course_id = ?, session = ?";
         let params = [title, subject_id || null, course_id, session];
@@ -709,16 +736,23 @@ exports.updateNote = async (req, res) => {
 
         await db.execute(query, params);
         res.status(200).json({ success: true, message: "Material updated successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteNote = async (req, res) => {
     const { id } = req.params;
     try {
-        const [note] = await db.execute("SELECT file_url FROM notes WHERE id = ?", [id]);
+        const [note] = await db.execute("SELECT file_url, uploaded_by FROM notes WHERE id = ?", [id]);
         
         if (note.length === 0) {
             return res.status(404).json({ success: false, message: "Material not found" });
+        }
+
+        if (req.user.role === 'teacher') {
+            const [staff] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [req.user.id]);
+            if (!staff.length || (note[0].uploaded_by && note[0].uploaded_by !== staff[0].id)) {
+                return res.status(403).json({ success: false, message: "Access forbidden: You can only delete study materials you uploaded." });
+            }
         }
 
         if (note[0].file_url) {
@@ -741,7 +775,7 @@ exports.deleteNote = async (req, res) => {
         res.status(200).json({ success: true, message: "Material deleted successfully" });
     } catch (error) { 
         console.error("Delete note error:", error);
-        res.status(500).json({ success: false, message: error.message }); 
+        return safeError(res, error); 
     }
 };
 
@@ -761,7 +795,7 @@ exports.getNotes = async (req, res) => {
     const [rows] = await db.execute(query);
     console.log("Notes Data:", rows);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // --- STUDENT CONTROLLERS ---
@@ -774,7 +808,7 @@ exports.getStudentAttendance = async (req, res) => {
     const [rows] = await db.execute("SELECT a.*, s.name as subject_name, c.name as course_name FROM attendance a LEFT JOIN subjects s ON a.subject_id = s.id LEFT JOIN courses c ON s.course_id = c.id WHERE a.student_id = ?", [student[0].id]);
     console.log("Student Attendance:", rows);
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.getStudentResults = async (req, res) => {
@@ -783,13 +817,24 @@ exports.getStudentResults = async (req, res) => {
     const [student] = await db.execute("SELECT id FROM students WHERE user_id = ?", [req.user.id]);
     if (student.length === 0) return res.status(200).json({ success: true, data: [] });
     const [rows] = await db.execute("SELECT r.*, s.name as subject_name FROM results r JOIN subjects s ON r.subject_id = s.id WHERE r.student_id = ?", [student[0].id]);
-    console.log("Student Results:", rows);
+    // Student results fetched
     res.status(200).json({ success: true, data: rows });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.getStudentFeesById = async (req, res) => {
-  const { id } = req.params;
+  let { id } = req.params;
+
+  // IDOR Protection: Students may only view their own fee records
+  if (req.user.role === 'student') {
+    if (String(id) !== String(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access forbidden: You can only view your own fee records."
+      });
+    }
+    id = req.user.id;
+  }
   console.log("API HIT: GET /api/fees/student/" + id);
   try {
     const [student] = await db.execute("SELECT id, course_id FROM students WHERE user_id = ?", [id]);
@@ -807,9 +852,9 @@ exports.getStudentFeesById = async (req, res) => {
             result.push({ ...fs, amount_paid: 0, status: 'pending', paid_date: null });
         }
     }
-    console.log("Student Fees by ID:", result);
+    // Student fees fetched
     res.status(200).json({ success: true, data: result });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.getStudentFees = async (req, res) => {
@@ -829,13 +874,22 @@ exports.getStudentFees = async (req, res) => {
             result.push({ ...fs, amount_paid: 0, status: 'pending', paid_date: null });
         }
     }
-    console.log("Student Fees:", result);
+    // Student fees fetched
     res.status(200).json({ success: true, data: result });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.payStudentFee = async (req, res) => {
   const { fee_structure_id, amount, payment_method } = req.body;
+
+  if (!fee_structure_id || amount === undefined || amount === null) {
+    return res.status(400).json({ success: false, message: "fee_structure_id and amount are required" });
+  }
+
+  const numAmount = Number(amount);
+  if (isNaN(numAmount) || numAmount <= 0 || numAmount > 10000000) {
+    return res.status(400).json({ success: false, message: "Amount must be a valid positive number" });
+  }
   try {
     const [student] = await db.execute("SELECT id FROM students WHERE user_id = ?", [req.user.id]);
     if (student.length === 0) return res.status(404).json({ success: false, message: "Student record not found" });
@@ -855,7 +909,7 @@ exports.payStudentFee = async (req, res) => {
         );
     }
     res.status(200).json({ success: true, message: "Payment successful (Demo)", transaction_id });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 exports.getAdminFees = async (req, res) => {
@@ -877,18 +931,26 @@ exports.getAdminFees = async (req, res) => {
         `);
         console.log("Admin Fees:", rows);
         res.status(200).json({ success: true, data: rows });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.submitComplaint = async (req, res) => {
     const { title, message } = req.body;
+    if (!title || !message) {
+        return res.status(400).json({ success: false, message: "Title and message are required" });
+    }
+    const cleanTitle = String(title).trim().slice(0, 255);
+    const cleanMessage = String(message).trim().slice(0, 5000);
+    if (!cleanTitle || !cleanMessage) {
+        return res.status(400).json({ success: false, message: "Title and message cannot be empty" });
+    }
     try {
         await db.execute(
             "INSERT INTO complaints (user_id, role, title, message) VALUES (?, ?, ?, ?)",
-            [req.user.id, req.user.role, title, message]
+            [req.user.id, req.user.role, cleanTitle, cleanMessage]
         );
         res.status(200).json({ success: true, message: "Complaint/Feedback submitted successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.getAdminComplaints = async (req, res) => {
@@ -900,9 +962,9 @@ exports.getAdminComplaints = async (req, res) => {
             JOIN users u ON cmp.user_id = u.id 
             ORDER BY cmp.created_at DESC
         `);
-        console.log("Admin Complaints:", rows);
+        // Admin complaints fetched
         res.status(200).json({ success: true, data: rows });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteComplaint = async (req, res) => {
@@ -910,7 +972,7 @@ exports.deleteComplaint = async (req, res) => {
     try {
         await db.execute("DELETE FROM complaints WHERE id = ?", [id]);
         res.status(200).json({ success: true, message: "Complaint deleted" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.updateProfileImage = async (req, res) => {
@@ -924,7 +986,7 @@ exports.updateProfileImage = async (req, res) => {
     }
     await db.execute("UPDATE users SET profile_image = ? WHERE id = ?", [profile_image, req.user.id]);
     res.status(200).json({ success: true, message: "Profile image updated", profile_image });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { return safeError(res, error); }
 };
 
 // Assignments
@@ -956,7 +1018,7 @@ exports.createAssignment = async (req, res) => {
         res.status(200).json({ success: true, message: "Assignment created successfully" });
     } catch (error) { 
         console.error("DEBUG: createAssignment Error:", error);
-        res.status(500).json({ success: false, message: error.message }); 
+        return safeError(res, error); 
     }
 };
 
@@ -1002,9 +1064,9 @@ exports.getAssignments = async (req, res) => {
         }
 
         const [rows] = await db.execute(query, params);
-        console.log("Assignments Data:", rows);
+        // Assignments data fetched
         res.status(200).json({ success: true, data: rows || [] });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 exports.getAssignmentStatus = async (req, res) => {
     const { assignment_id } = req.query;
@@ -1017,7 +1079,7 @@ exports.getAssignmentStatus = async (req, res) => {
             [assignment_id, student[0].id]
         );
         res.status(200).json({ success: true, completed: rows.length > 0 });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.getAssignmentDetails = async (req, res) => {
@@ -1064,7 +1126,7 @@ exports.getAssignmentDetails = async (req, res) => {
                 submission: studentSubmission
             } 
         });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.submitAssignment = async (req, res) => {
@@ -1093,7 +1155,7 @@ exports.submitAssignment = async (req, res) => {
         res.status(200).json({ success: true, message: "Assignment submitted successfully" });
     } catch (error) { 
         console.error("DEBUG: submitAssignment Error:", error);
-        res.status(500).json({ success: false, message: error.message }); 
+        return safeError(res, error); 
     }
 };
 
@@ -1156,7 +1218,7 @@ exports.getSubmissions = async (req, res) => {
         });
     } catch (error) { 
         console.error("CRITICAL: getSubmissions Error:", error);
-        res.status(500).json({ success: false, message: error.message }); 
+        return safeError(res, error); 
     }
 };exports.evaluateSubmission = async (req, res) => {
     const { submission_id, marks, remarks, theory_marks } = req.body;
@@ -1172,7 +1234,7 @@ exports.getSubmissions = async (req, res) => {
             [theory_marks || 0, total_obtained, remarks, submission_id]
         );
         res.status(200).json({ success: true, message: "Submission evaluated" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 
@@ -1202,7 +1264,7 @@ exports.addMultipleSubjects = async (req, res) => {
         res.status(200).json({ success: true, message: "Subjects added successfully" });
     } catch (error) { 
         console.error("DEBUG: addMultipleSubjects Error:", error);
-        res.status(500).json({ success: false, message: error.message }); 
+        return safeError(res, error); 
     }
 };
 
@@ -1219,7 +1281,7 @@ exports.bulkUploadMarks = async (req, res) => {
             );
         }
         res.status(200).json({ success: true, message: "Marks uploaded successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.getSavedMarks = async (req, res) => {
@@ -1236,7 +1298,7 @@ exports.getSavedMarks = async (req, res) => {
         `, [course_id, session, exam_name]);
         console.log("Saved Marks:", rows);
         res.status(200).json({ success: true, data: rows });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.updateMarksBulk = async (req, res) => {
@@ -1249,7 +1311,7 @@ exports.updateMarksBulk = async (req, res) => {
             );
         }
         res.status(200).json({ success: true, message: "Marks updated successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteMarksBulk = async (req, res) => {
@@ -1260,7 +1322,7 @@ exports.deleteMarksBulk = async (req, res) => {
             [course_id, session, exam_name]
         );
         res.status(200).json({ success: true, message: "Marks deleted successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.getStudentSubjects = async (req, res) => {
@@ -1272,15 +1334,24 @@ exports.getStudentSubjects = async (req, res) => {
             "SELECT * FROM subjects WHERE course_id = ? AND session = ?",
             [student[0].course_id, student[0].session]
         );
-        console.log("Student Subjects:", rows);
+        // Student subjects fetched
         res.status(200).json({ success: true, data: rows });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 // Assignments
 exports.updateAssignment = async (req, res) => {
     const { id } = req.params;
     const { title, description, course_id, session, type, duration, questions, total_marks } = req.body;
     try {
+        const [assignment] = await db.execute("SELECT id, teacher_id FROM assignments WHERE id = ?", [id]);
+        if (assignment.length === 0) return res.status(404).json({ success: false, message: "Assignment not found" });
+
+        if (req.user.role === 'teacher') {
+            const [staff] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [req.user.id]);
+            if (!staff.length || (assignment[0].teacher_id && assignment[0].teacher_id !== staff[0].id)) {
+                return res.status(403).json({ success: false, message: "Access forbidden: You can only update assignments you created." });
+            }
+        }
         await db.execute(
             "UPDATE assignments SET title = ?, description = ?, course_id = ?, session = ?, type = ?, duration = ?, total_marks = ? WHERE id = ?",
             [title, description, course_id, session, type, duration, total_marks || 0, id]
@@ -1297,13 +1368,22 @@ exports.updateAssignment = async (req, res) => {
         }
 
         res.status(200).json({ success: true, message: "Assignment updated successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };
 
 exports.deleteAssignment = async (req, res) => {
     const { id } = req.params;
     try {
+        const [assignment] = await db.execute("SELECT id, teacher_id FROM assignments WHERE id = ?", [id]);
+        if (assignment.length === 0) return res.status(404).json({ success: false, message: "Assignment not found" });
+
+        if (req.user.role === 'teacher') {
+            const [staff] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [req.user.id]);
+            if (!staff.length || (assignment[0].teacher_id && assignment[0].teacher_id !== staff[0].id)) {
+                return res.status(403).json({ success: false, message: "Access forbidden: You can only delete assignments you created." });
+            }
+        }
         await db.execute("DELETE FROM assignments WHERE id = ?", [id]);
         res.status(200).json({ success: true, message: "Assignment deleted successfully" });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { return safeError(res, error); }
 };

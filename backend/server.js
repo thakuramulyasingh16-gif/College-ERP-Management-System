@@ -1,13 +1,21 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const erpRoutes = require('./routes/erpRoutes');
+const uploadAuth = require('./middleware/uploadAuth');
 const db = require('./config/db');
 const path = require('path');
 
 dotenv.config();
 const app = express();
+
+// Security: standard security headers with cross-origin asset support
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false // Allows frontend to render assets across deployment domains
+}));
 
 // Database Connection Test
 db.getConnection()
@@ -26,13 +34,14 @@ db.getConnection()
 // Allowed origins: production frontend + local development
 const allowedOrigins = [
   "https://college-erp-management-system-1.onrender.com",
+  "https://college-erp-management-system-a9xk.onrender.com",
   "http://localhost:5173",
   "http://localhost:3000"
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. server-to-server, curl, Postman)
+    // Allow requests with no origin (e.g. server-to-server, curl, Postman, health checks)
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -41,8 +50,10 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.json({ limit: '10mb' }));
+
+// Protected uploads: requires valid JWT (via Bearer header or ?token= query param)
+app.use('/uploads', uploadAuth, express.static(path.join(__dirname, 'uploads')));
 
 // Security: prevent browsers from caching authenticated API responses
 app.use('/api', (req, res, next) => {
@@ -52,11 +63,13 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Debug middleware (development only — safe to remove in production)
-app.use((req, res, next) => {
-  console.log(`API HIT: ${req.method} ${req.url}`);
-  next();
-});
+// Non-sensitive request logging
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`API HIT: ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // Auth routes: /api/auth/login, /api/auth/logout, /api/auth/register
 app.use('/api/auth', authRoutes);
@@ -68,17 +81,19 @@ app.use('/api', erpRoutes);
 const authMiddleware = require('./middleware/auth');
 app.get('/api/session/check', authMiddleware(), (req, res) => res.json({ valid: true }));
 
-// NOTE: The old duplicate /api/login endpoint has been removed.
-// All login requests must go through /api/auth/login which uses bcrypt exclusively.
-
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');
 });
 
-// Global error handler
+// Global error handler - never leaks internal database or stack errors in production
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  console.error("GLOBAL ERROR:", err.stack || err);
+  const isDev = process.env.NODE_ENV === 'development';
+  const statusCode = err.status || (err.message && err.message.includes('CORS') ? 403 : 500);
+  
+  res.status(statusCode).json({
+    message: isDev ? err.message : (statusCode === 403 ? 'CORS request blocked' : 'Internal Server Error')
+  });
 });
 
 const PORT = process.env.PORT || 5000;

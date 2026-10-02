@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Uploaded user files (must never be committed to source control)
+uploads/*
+!uploads/**/.gitkeep
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

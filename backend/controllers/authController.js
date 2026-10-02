@@ -3,6 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { blacklistToken } = require("../middleware/auth");
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MOBILE_REGEX = /^[0-9]{10}$/;
+
 exports.register = async (req, res) => {
   const { name, email, mobile, password } = req.body;
   const role = 'student';
@@ -11,29 +14,56 @@ exports.register = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  const cleanName = String(name).trim();
+  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanMobile = String(mobile).trim();
+  const cleanPassword = String(password);
+
+  // Input Validation
+  if (cleanName.length < 2 || cleanName.length > 100) {
+    return res.status(400).json({ message: "Name must be between 2 and 100 characters" });
+  }
+
+  if (!EMAIL_REGEX.test(cleanEmail) || cleanEmail.length > 100) {
+    return res.status(400).json({ message: "Please provide a valid email address" });
+  }
+
+  if (!MOBILE_REGEX.test(cleanMobile)) {
+    return res.status(400).json({ message: "Mobile number must be exactly 10 digits" });
+  }
+
+  if (cleanPassword.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+  }
+
+  if (cleanPassword.length > 128) {
+    return res.status(400).json({ message: "Password cannot exceed 128 characters" });
+  }
+
   try {
     const [existingUser] = await db.execute(
       "SELECT * FROM users WHERE email = ? OR mobile = ?",
-      [email, mobile]
+      [cleanEmail, cleanMobile]
     );
 
     if (existingUser.length > 0) {
       return res.status(400).json({ 
-        message: existingUser[0].email === email ? "Email already registered" : "Mobile number already registered" 
+        message: existingUser[0].email === cleanEmail ? "Email already registered" : "Mobile number already registered" 
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(cleanPassword, 10);
 
     const [result] = await db.execute(
       "INSERT INTO users (name, email, mobile, password, role) VALUES (?, ?, ?, ?, ?)",
-      [name, email, mobile, hashedPassword, role]
+      [cleanName, cleanEmail, cleanMobile, hashedPassword, role]
     );
 
     res.status(201).json({ message: "Student registered successfully", userId: result.insertId });
   } catch (error) {
     console.error("Registration Error:", error);
-    res.status(500).json({ message: "Database Error: " + error.message });
+    const isDev = process.env.NODE_ENV === 'development';
+    res.status(500).json({ message: isDev ? error.message : "Registration failed. Please try again." });
   }
 };
 
@@ -44,10 +74,17 @@ exports.login = async (req, res) => {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
+  const cleanIdentifier = String(loginIdentifier).trim();
+  const cleanPassword = String(password);
+
+  if (cleanPassword.length > 128) {
+    return res.status(400).json({ message: "Invalid credentials" });
+  }
+
   try {
     const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ? OR mobile = ?",
-      [loginIdentifier.trim(), loginIdentifier.trim()]
+      [cleanIdentifier, cleanIdentifier]
     );
 
     if (users.length === 0) {
@@ -56,7 +93,7 @@ exports.login = async (req, res) => {
 
     const user = users[0];
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(cleanPassword, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
@@ -114,7 +151,8 @@ exports.login = async (req, res) => {
     res.json({ token, user: detailedUser });
   } catch (error) {
     console.error("Login Error:", error);
-    res.status(500).json({ message: "Server Error" });
+    const isDev = process.env.NODE_ENV === 'development';
+    res.status(500).json({ message: isDev ? error.message : "Server error during login" });
   }
 };
 
@@ -161,7 +199,8 @@ exports.verify = async (req, res) => {
     res.json({ valid: true, user: detailedUser });
   } catch (error) {
     console.error("Verify Error:", error);
-    res.status(500).json({ message: "Server Error verifying session" });
+    const isDev = process.env.NODE_ENV === 'development';
+    res.status(500).json({ message: isDev ? error.message : "Server Error verifying session" });
   }
 };
 
@@ -184,6 +223,7 @@ exports.logout = async (req, res) => {
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
-    res.status(500).json({ message: "Server Error during logout" });
+    const isDev = process.env.NODE_ENV === 'development';
+    res.status(500).json({ message: isDev ? error.message : "Server Error during logout" });
   }
 };

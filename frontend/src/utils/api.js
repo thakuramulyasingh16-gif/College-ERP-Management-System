@@ -78,3 +78,12 @@ export const fetchData = async (endpoint) => {
     return [];
   }
 };
+
+export const getMediaUrl = (mediaPath) => {
+  if (!mediaPath) return '';
+  if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) return mediaPath;
+  const token = getToken();
+  const base = "https://college-erp-management-system-a9xk.onrender.com";
+  const cleanPath = mediaPath.startsWith('/') ? mediaPath : `/${mediaPath}`;
+  return token ? `${base}${cleanPath}?token=${encodeURIComponent(token)}` : `${base}${cleanPath}`;
+};

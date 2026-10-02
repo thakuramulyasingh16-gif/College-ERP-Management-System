@@ -2,6 +2,10 @@ const db = require('./config/db');
 const bcrypt = require('bcryptjs');
 
 async function seed() {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED_IN_PRODUCTION !== 'true') {
+    console.error("CRITICAL: seed.js is blocked in production to prevent data loss. Set ALLOW_SEED_IN_PRODUCTION=true if intentionally resetting.");
+    process.exit(1);
+  }
   try {
     const hashedAdminPwd = await bcrypt.hash('admin123', 10);
     const hashedTeacherPwd = await bcrypt.hash('teacher123', 10);
