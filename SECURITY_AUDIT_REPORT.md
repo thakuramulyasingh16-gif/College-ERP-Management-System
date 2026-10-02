@@ -38,6 +38,7 @@ A comprehensive, multi-phase application security audit and hardening pass was c
 | **SEC-14** | Overexposure of Student Contact Info in Directory | **LOW** | **DOCUMENTED** | `GET /api/students` |
 | **SEC-15** | Token Storage in LocalStorage (XSS Vulnerability vs UX Tradeoff) | **LOW** | **DOCUMENTED** | `frontend/src/utils/api.js` |
 | **SEC-16** | Outdated Dependencies with Known Vulnerabilities | **LOW** | **REMEDIATED** | `frontend/package.json`, `backend/package.json` |
+| **SEC-17** | Insecure Password Reset Logic & Missing Identity Verification | **HIGH** | **REMEDIATED** | `erpController.js`, `AdminDashboard.jsx`, `erpRoutes.js` |
 
 ---
 
@@ -290,6 +291,28 @@ A comprehensive, multi-phase application security audit and hardening pass was c
 
 ---
 
+### Finding SEC-17: Insecure Password Reset Logic & Missing Identity Verification
+- **Severity:** **HIGH** (CVSS:3.1/AV:N/AC:L/PR:H/UI:R/S:U/C:H/I:H/A:H - 6.8)
+- **Affected Components:** `backend/controllers/erpController.js`, `backend/routes/erpRoutes.js`, `backend/middleware/rateLimiters.js`, `frontend/src/components/AdminDashboard.jsx`
+- **Evidence:**
+  Previously, a single shared endpoint `POST /api/reset-password` blindly accepted `{ userId, newPassword }` with zero current password verification for self-changes, zero identity confirmation for teacher/student resets, and no rate limiting against password change attempts.
+- **Root Cause:** Conflating two distinct workflows (self-service password change vs. administrative override reset) into a single unverified function.
+- **Fix Applied:**
+  1. **Separated Flow 1 (Self-Service Password Change):**
+     - Created `POST /api/change-password` protected by `auth()` (accepts any authenticated role).
+     - Derives user ID strictly from the verified JWT (`req.user.id`).
+     - Verifies `bcrypt.compare(oldPassword, user.password)`. Returns 400 with "Current password is incorrect" on failure.
+     - Enforces server-side minimum length of 8 characters and applies `changePasswordRateLimiter` (5 attempts per 15 mins).
+     - Implemented Claymorphism "Change My Password" modal in Admin Dashboard with 3 required fields and inline error reporting.
+  2. **Separated Flow 2 (Admin Resetting Teacher/Student Password):**
+     - Updated `POST /api/reset-password` to require `{ userId, newPassword, confirmedIdentifier }`.
+     - Looks up teacher's staff ID or student's roll number from database and requires exact match against `confirmedIdentifier`.
+     - Implemented two-step modal in Admin Dashboard: Step 1 forces administrator to confirm the exact matching Teacher ID or Roll Number before Step 2 password inputs appear.
+- **Verification:** Validated via automated test suite `backend/test-password-flows.js` (9/9 passed).
+- **Residual Risk:** None.
+
+---
+
 ## 4. Manual Actions Required
 
 The following actions cannot be executed automatically and require explicit intervention by the repository owner / infrastructure administrator:
@@ -384,7 +407,14 @@ All fixes have been validated with automated test scripts included in the reposi
    ```
    *Covers:* All 6 original login rate limiter scenarios (5 failures, 6th lockout, IP isolation, user isolation, counter reset on success, 60-second expiration).
 
-4. **Frontend Production Build:**
+4. **Password Flows & Identity Verification Test Suite:**
+   ```bash
+   cd backend
+   node test-password-flows.js
+   ```
+   *Covers:* All 9 password flow scenarios: wrong old password rejection (400), password length checks, correct admin password change, non-admin protection on reset, wrong Teacher ID blocking (400), correct Teacher ID reset, wrong Student Roll Number blocking (400), correct Student Roll Number reset, and generic role reusability.
+
+5. **Frontend Production Build:**
    ```bash
    cd frontend
    npm run build

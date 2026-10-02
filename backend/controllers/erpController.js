@@ -402,13 +402,118 @@ exports.deleteStudent = async (req, res) => {
   } catch (error) { return safeError(res, error); }
 };
 
-exports.resetPassword = async (req, res) => {
-  const { userId, newPassword } = req.body;
+exports.changeOwnPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Authentication required" });
+  }
+
+  if (!oldPassword || typeof oldPassword !== 'string') {
+    return res.status(400).json({ success: false, message: "Current password is required" });
+  }
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "New password must be at least 8 characters long" 
+    });
+  }
+
   try {
+    const [rows] = await db.execute("SELECT id, password FROM users WHERE id = ?", [userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, rows[0].password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Current password is incorrect" });
+    }
+
     const hashedPassword = await hashPassword(newPassword);
     await db.execute("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
-    res.status(200).json({ success: true, message: "Password reset successful" });
-  } catch (error) { return safeError(res, error); }
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Password changed successfully" 
+    });
+  } catch (error) {
+    return safeError(res, error, "Failed to change password");
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { userId, newPassword, confirmedIdentifier } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "User ID is required" });
+  }
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "New password must be at least 8 characters long" 
+    });
+  }
+
+  if (!confirmedIdentifier || typeof confirmedIdentifier !== 'string' || !confirmedIdentifier.trim()) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Identity confirmation identifier is required" 
+    });
+  }
+
+  try {
+    const [userRows] = await db.execute("SELECT id, role, name FROM users WHERE id = ?", [userId]);
+    if (userRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const targetUser = userRows[0];
+    const cleanConfirmed = confirmedIdentifier.trim().toLowerCase();
+
+    if (targetUser.role === 'teacher') {
+      const [staffRows] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [userId]);
+      if (staffRows.length === 0) {
+        return res.status(400).json({ success: false, message: "Teacher staff record not found" });
+      }
+      const actualStaffId = String(staffRows[0].id).trim().toLowerCase();
+      if (actualStaffId !== cleanConfirmed) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Identity confirmation failed: Teacher ID does not match" 
+        });
+      }
+    } else if (targetUser.role === 'student') {
+      const [studentRows] = await db.execute("SELECT roll_no FROM students WHERE user_id = ?", [userId]);
+      if (studentRows.length === 0) {
+        return res.status(400).json({ success: false, message: "Student record not found" });
+      }
+      const actualRollNo = String(studentRows[0].roll_no).trim().toLowerCase();
+      if (actualRollNo !== cleanConfirmed) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Identity confirmation failed: Roll number does not match" 
+        });
+      }
+    } else {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Identity confirmation failed: Only teachers and students can be reset here" 
+      });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await db.execute("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+    return res.status(200).json({ 
+      success: true, 
+      message: `Password reset successfully for ${targetUser.name}` 
+    });
+  } catch (error) { 
+    return safeError(res, error, "Failed to reset password"); 
+  }
 };
 
 // Fees

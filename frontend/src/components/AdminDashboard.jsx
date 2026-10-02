@@ -35,7 +35,34 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   const [headerSessions, setHeaderSessions] = useState([]);
 
   // Modals & Edit States
-  const [resetModal, setResetModal] = useState({ open: false, userId: null, newPassword: '' });
+  // Flow 1: Admin changing own password
+  const [changePasswordModal, setChangePasswordModal] = useState({
+    open: false,
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    oldPasswordError: '',
+    generalError: '',
+    successMsg: '',
+    loading: false
+  });
+
+  // Flow 2: Admin resetting a Teacher/Student password (2-step modal)
+  const [resetModal, setResetModal] = useState({
+    open: false,
+    step: 1, // 1: identity confirmation, 2: set new password
+    userId: null,
+    targetName: '',
+    targetRole: '', // 'teacher' | 'student'
+    expectedIdentifier: '', // staff_id or roll_number
+    inputIdentifier: '',
+    identifierError: '',
+    newPassword: '',
+    confirmPassword: '',
+    passwordError: '',
+    successMsg: '',
+    loading: false
+  });
   const [editDept, setEditDept] = useState(null);
   const [editCourse, setEditCourse] = useState(null);
   const [editFee, setEditFee] = useState(null);
@@ -323,15 +350,175 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     }
   };
 
-  const handleResetPassword = async () => {
-    if (!resetModal?.newPassword) return alert('Enter password');
+  // Flow 1: Change Own Password Handlers
+  const handleChangeMyPassword = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setChangePasswordModal(prev => ({ ...prev, oldPasswordError: '', generalError: '', successMsg: '' }));
+
+    if (!changePasswordModal.oldPassword) {
+      setChangePasswordModal(prev => ({ ...prev, oldPasswordError: 'Current password is required' }));
+      return;
+    }
+    if (!changePasswordModal.newPassword || changePasswordModal.newPassword.length < 8) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New password must be at least 8 characters' }));
+      return;
+    }
+    if (changePasswordModal.newPassword !== changePasswordModal.confirmPassword) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New passwords do not match' }));
+      return;
+    }
+
+    setChangePasswordModal(prev => ({ ...prev, loading: true }));
     try {
-      await api.post('/reset-password', { userId: resetModal.userId, newPassword: resetModal.newPassword });
-      alert('Password reset successfully');
-      setResetModal({ open: false, userId: null, newPassword: '' });
-    } catch (_err) {
-      console.error(_err);
-      alert('Error resetting password');
+      const res = await api.post('/change-password', {
+        oldPassword: changePasswordModal.oldPassword,
+        newPassword: changePasswordModal.newPassword
+      });
+
+      const msg = res.data?.message || 'Password changed successfully';
+      setChangePasswordModal(prev => ({
+        ...prev,
+        loading: false,
+        successMsg: msg
+      }));
+
+      setTimeout(() => {
+        closeChangePasswordModal();
+      }, 1200);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to change password';
+      if (msg.toLowerCase().includes('current password is incorrect') || (err.response?.status === 400 && msg.toLowerCase().includes('current password'))) {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          oldPasswordError: 'Current password is incorrect',
+          generalError: ''
+        }));
+      } else {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          generalError: msg,
+          oldPasswordError: ''
+        }));
+      }
+    }
+  };
+
+  const closeChangePasswordModal = () => {
+    setChangePasswordModal({
+      open: false,
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      oldPasswordError: '',
+      generalError: '',
+      successMsg: '',
+      loading: false
+    });
+  };
+
+  // Flow 2: Reset Teacher / Student Password Handlers (2-step)
+  const openResetModal = (target) => {
+    setResetModal({
+      open: true,
+      step: 1,
+      userId: target.userId,
+      targetName: target.targetName || 'User',
+      targetRole: target.targetRole || '',
+      expectedIdentifier: target.expectedIdentifier || '',
+      inputIdentifier: '',
+      identifierError: '',
+      newPassword: '',
+      confirmPassword: '',
+      passwordError: '',
+      successMsg: '',
+      loading: false
+    });
+  };
+
+  const closeResetModal = () => {
+    setResetModal({
+      open: false,
+      step: 1,
+      userId: null,
+      targetName: '',
+      targetRole: '',
+      expectedIdentifier: '',
+      inputIdentifier: '',
+      identifierError: '',
+      newPassword: '',
+      confirmPassword: '',
+      passwordError: '',
+      successMsg: '',
+      loading: false
+    });
+  };
+
+  const handleConfirmIdentity = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const typed = (resetModal.inputIdentifier || '').trim().toLowerCase();
+    const expected = String(resetModal.expectedIdentifier || '').trim().toLowerCase();
+
+    if (!typed) {
+      setResetModal(prev => ({
+        ...prev,
+        identifierError: prev.targetRole === 'teacher' ? 'Enter Teacher ID to confirm' : 'Enter Roll Number to confirm'
+      }));
+      return;
+    }
+
+    if (typed !== expected) {
+      setResetModal(prev => ({
+        ...prev,
+        identifierError: 'ID does not match this record'
+      }));
+      return;
+    }
+
+    // Exact match verified client-side, proceed to Step 2
+    setResetModal(prev => ({
+      ...prev,
+      step: 2,
+      identifierError: '',
+      passwordError: ''
+    }));
+  };
+
+  const handleResetPassword = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setResetModal(prev => ({ ...prev, passwordError: '', successMsg: '' }));
+
+    if (!resetModal.newPassword || resetModal.newPassword.length < 8) {
+      setResetModal(prev => ({ ...prev, passwordError: 'Password must be at least 8 characters' }));
+      return;
+    }
+    if (resetModal.newPassword !== resetModal.confirmPassword) {
+      setResetModal(prev => ({ ...prev, passwordError: 'Passwords do not match' }));
+      return;
+    }
+
+    setResetModal(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await api.post('/reset-password', {
+        userId: resetModal.userId,
+        newPassword: resetModal.newPassword,
+        confirmedIdentifier: resetModal.inputIdentifier.trim()
+      });
+
+      const msg = res.data?.message || `Password reset successfully for ${resetModal.targetName}`;
+      setResetModal(prev => ({ ...prev, loading: false, successMsg: msg }));
+
+      setTimeout(() => {
+        closeResetModal();
+      }, 1200);
+    } catch (err) {
+      console.error(err);
+      setResetModal(prev => ({
+        ...prev,
+        loading: false,
+        passwordError: err.response?.data?.message || 'Error resetting password'
+      }));
     }
   };
 
@@ -424,6 +611,32 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
         <StatCard title="Departments" value={stats?.departments} icon={Building2} color="purple"  />
         <StatCard title="Courses" value={stats?.courses} icon={BookOpen} color="orange"  />
       </div>
+
+      {/* Admin Profile & Account Security Card */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl shadow-inner">
+            {user?.name?.charAt(0) || 'A'}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-xl text-slate-800">{user?.name || 'Administrator'}</h3>
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-indigo-100">
+                Administrator
+              </span>
+            </div>
+            <p className="text-slate-400 text-sm font-medium mt-1">{user?.email || 'admin@college.com'}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setChangePasswordModal(prev => ({ ...prev, open: true }))}
+          className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-lg shadow-indigo-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Key size={17} />
+          <span>Change My Password</span>
+        </button>
+      </div>
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50">
           <h3 className="font-black text-xl text-slate-800 mb-6 flex items-center gap-2">
@@ -434,7 +647,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
             <ActionButton label="Add Teacher" icon={PlusCircle} onClick={() => setActiveTab('staff')} color="blue"  />
             <ActionButton label="Add Student" icon={PlusCircle} onClick={() => setActiveTab('students')} color="indigo"  />
             <ActionButton label="Add Course" icon={PlusCircle} onClick={() => setActiveTab('courses')} color="orange"  />
-            <ActionButton label="Password Reset" icon={Key} onClick={() => setResetModal({ open: true, userId: user?.id, newPassword: '' })} color="blue"  />
+            <ActionButton label="Change My Password" icon={Key} onClick={() => setChangePasswordModal(prev => ({ ...prev, open: true }))} color="purple"  />
           </div>
         </div>
       </div>
@@ -517,7 +730,12 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                           setEditTeacherModal({ open: true, data: {...s, new_profile_image: null} });
                           setTeacherPreview(s.profile_image ? getMediaUrl(s.profile_image) : null);
                         }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
-                        <button onClick={() => setResetModal({ open: true, userId: s?.user_id, newPassword: '' })} className="p-2 text-slate-400 hover:text-blue-600"><Key size={18}  /></button>
+                        <button onClick={() => openResetModal({
+                          userId: s?.user_id,
+                          targetName: s?.name,
+                          targetRole: 'teacher',
+                          expectedIdentifier: s?.staff_id
+                        })} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                         <button onClick={() => handleDeleteTeacher(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
                       </td>
                     </tr>
@@ -624,7 +842,12 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                         setEditStudentModal({ open: true, data: {...s, new_profile_image: null} });
                         setStudentPreview(s.profile_image ? getMediaUrl(s.profile_image) : null);
                       }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
-                      <button onClick={() => setResetModal({ open: true, userId: s?.user_id, newPassword: '' })} className="p-2 text-slate-400 hover:text-blue-600"><Key size={18}  /></button>
+                      <button onClick={() => openResetModal({
+                        userId: s?.user_id,
+                        targetName: s?.name,
+                        targetRole: 'student',
+                        expectedIdentifier: s?.roll_number
+                      })} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                       <button onClick={() => handleDeleteStudent(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
                     </td>
                   </tr>
@@ -1081,16 +1304,312 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
       {activeTab === 'notices' && renderNotices()}
       
       {/* Password Reset Modal */}
+      {/* FLOW 1: Change My Password Modal (Admin Own Password) */}
+      {changePasswordModal.open && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-slate-800">Change My Password</h3>
+                  <p className="text-slate-400 text-xs font-semibold">Update your administrator account password</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeChangePasswordModal} 
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {changePasswordModal.successMsg ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <CheckCircle size={18} className="text-emerald-500 shrink-0" />
+                <span>{changePasswordModal.successMsg}</span>
+              </div>
+            ) : null}
+
+            {changePasswordModal.generalError ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <AlertCircle size={18} className="text-red-500 shrink-0" />
+                <span>{changePasswordModal.generalError}</span>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleChangeMyPassword} className="space-y-4">
+              {/* Field 1: Current (Old) Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Current (Old) Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter current password"
+                  className={`w-full p-3.5 bg-slate-50 border rounded-2xl text-sm font-bold outline-none transition-all ${
+                    changePasswordModal.oldPasswordError 
+                      ? 'border-red-400 bg-red-50/30 focus:ring-2 focus:ring-red-400/20' 
+                      : 'border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                  }`}
+                  value={changePasswordModal.oldPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    oldPassword: e.target.value,
+                    oldPasswordError: '' 
+                  })}
+                />
+                {changePasswordModal.oldPasswordError && (
+                  <p className="text-red-500 text-xs font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle size={13} />
+                    <span>{changePasswordModal.oldPasswordError}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Field 2: New Password with Strength Hint */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter new password (min. 8 characters)"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.newPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    newPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+                <p className="text-slate-400 text-[11px] font-semibold mt-1">
+                  Password strength hint: Minimum 8 characters, mix of letters & numbers recommended.
+                </p>
+              </div>
+
+              {/* Field 3: Confirm New Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Confirm New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Re-enter new password"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.confirmPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    confirmPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={changePasswordModal.loading || !!changePasswordModal.successMsg}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-3.5 rounded-2xl font-black text-sm shadow-lg shadow-purple-600/25 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  {changePasswordModal.loading ? 'Updating...' : 'Change Password'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeChangePasswordModal}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 p-3.5 rounded-2xl font-black text-sm transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FLOW 2: Reset Teacher / Student Password Modal (Two Steps) */}
       {resetModal?.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in duration-300">
-            <h3 className="font-black text-xl text-slate-800 mb-2">Reset Password</h3>
-            <p className="text-slate-400 text-sm mb-6">Enter new secure password.</p>
-            <input type="text" className="w-full p-4 bg-slate-50 rounded-2xl mb-4 font-mono text-sm font-bold" value={resetModal?.newPassword} onChange={(e) => setResetModal({...resetModal, newPassword: e.target.value})}  />
-            <div className="flex gap-3">
-              <button onClick={handleResetPassword} className="flex-1 bg-blue-600 text-white p-3 rounded-2xl font-black text-sm">Reset</button>
-              <button onClick={() => setResetModal({ open: false, userId: null, newPassword: '' })} className="flex-1 bg-slate-100 text-slate-600 p-3 rounded-2xl font-black text-sm">Cancel</button>
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-slate-800">
+                    {resetModal.step === 1 ? 'Confirm Identity' : 'Set New Password'}
+                  </h3>
+                  <p className="text-slate-400 text-xs font-semibold">
+                    {resetModal.step === 1 ? 'Step 1 of 2: Verify user identity' : 'Step 2 of 2: Enter new password'}
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeResetModal} 
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
+
+            {/* Target Person Identity Card (Always Visible) */}
+            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Account</p>
+                <p className="font-black text-slate-800 text-base mt-0.5">{resetModal.targetName}</p>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                resetModal.targetRole === 'teacher' 
+                  ? 'bg-blue-50 text-blue-600 border border-blue-100' 
+                  : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+              }`}>
+                {resetModal.targetRole}
+              </span>
+            </div>
+
+            {/* STEP 1: Identity Confirmation */}
+            {resetModal.step === 1 && (
+              <form onSubmit={handleConfirmIdentity} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                    {resetModal.targetRole === 'teacher' 
+                      ? 'Enter Teacher ID to confirm' 
+                      : 'Enter Roll Number to confirm'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder={resetModal.targetRole === 'teacher' ? 'e.g. 1' : 'e.g. 2023-BCA-001'}
+                    className={`w-full p-3.5 bg-slate-50 border rounded-2xl text-sm font-bold outline-none transition-all ${
+                      resetModal.identifierError 
+                        ? 'border-red-400 bg-red-50/30 focus:ring-2 focus:ring-red-400/20' 
+                        : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    }`}
+                    value={resetModal.inputIdentifier}
+                    onChange={(e) => setResetModal({ 
+                      ...resetModal, 
+                      inputIdentifier: e.target.value,
+                      identifierError: '' 
+                    })}
+                  />
+                  {resetModal.identifierError && (
+                    <p className="text-red-500 text-xs font-bold mt-1.5 flex items-center gap-1 animate-in fade-in">
+                      <AlertCircle size={13} />
+                      <span>{resetModal.identifierError}</span>
+                    </p>
+                  )}
+                  <p className="text-slate-400 text-[11px] font-semibold mt-2">
+                    Enter the exact matching identifier from the record to confirm you intend to reset this user.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-2xl font-black text-sm shadow-lg shadow-blue-600/25 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    Confirm & Proceed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeResetModal}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 p-3.5 rounded-2xl font-black text-sm transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* STEP 2: New Password Fields */}
+            {resetModal.step === 2 && (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                {resetModal.successMsg ? (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold flex items-center gap-2 mb-2 animate-in fade-in">
+                    <CheckCircle size={18} className="text-emerald-500 shrink-0" />
+                    <span>{resetModal.successMsg}</span>
+                  </div>
+                ) : null}
+
+                {resetModal.passwordError ? (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2 mb-2 animate-in fade-in">
+                    <AlertCircle size={18} className="text-red-500 shrink-0" />
+                    <span>{resetModal.passwordError}</span>
+                  </div>
+                ) : null}
+
+                <div>
+                  <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                    New Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    autoFocus
+                    placeholder="Enter new password (min. 8 characters)"
+                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={resetModal.newPassword}
+                    onChange={(e) => setResetModal({ 
+                      ...resetModal, 
+                      newPassword: e.target.value,
+                      passwordError: '' 
+                    })}
+                  />
+                  <p className="text-slate-400 text-[11px] font-semibold mt-1">
+                    Minimum 8 characters required.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                    Confirm New Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Re-enter new password"
+                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={resetModal.confirmPassword}
+                    onChange={(e) => setResetModal({ 
+                      ...resetModal, 
+                      confirmPassword: e.target.value,
+                      passwordError: '' 
+                    })}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={resetModal.loading || !!resetModal.successMsg}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white p-3.5 rounded-2xl font-black text-sm shadow-lg shadow-blue-600/25 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    {resetModal.loading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResetModal(prev => ({ ...prev, step: 1, identifierError: '', passwordError: '' }))}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-3.5 rounded-2xl font-black text-sm transition-all"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeResetModal}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-3.5 rounded-2xl font-black text-sm transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

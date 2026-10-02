@@ -73,8 +73,18 @@ const passwordResetRateLimiter = createSimpleLimiter({
   message: 'Too many password reset requests. Please try again in 15 minutes.'
 });
 
+// 5 password change attempts per 15 minutes per user/IP
+const changePasswordRateLimiter = createSimpleLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 5,
+  name: 'change-password',
+  message: 'Too many password change attempts. Please try again in 15 minutes.'
+});
+
 module.exports = {
   complaintRateLimiter,
   submissionRateLimiter,
-  passwordResetRateLimiter
+  passwordResetRateLimiter,
+  changePasswordRateLimiter
 };
+

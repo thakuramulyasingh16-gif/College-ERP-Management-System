@@ -7,7 +7,8 @@ const { validateUploadedFile } = require("../middleware/upload");
 const { 
   complaintRateLimiter, 
   submissionRateLimiter, 
-  passwordResetRateLimiter 
+  passwordResetRateLimiter,
+  changePasswordRateLimiter
 } = require("../middleware/rateLimiters");
 
 // Common
@@ -51,7 +52,8 @@ router.delete("/students/:id", auth(["admin"]), erpController.deleteStudent);
 // Profile
 router.post("/update-profile-image", auth(["admin", "teacher", "student"]), upload.single('profile_image'), validateUploadedFile, erpController.updateProfileImage);
 
-// Auth/Admin
+// Auth / Password Management
+router.post("/change-password", auth(), changePasswordRateLimiter, erpController.changeOwnPassword);
 router.post("/reset-password", auth(["admin"]), passwordResetRateLimiter, erpController.resetPassword);
 
 // Fees
