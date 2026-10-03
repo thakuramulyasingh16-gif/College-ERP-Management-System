@@ -612,30 +612,20 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
         <StatCard title="Courses" value={stats?.courses} icon={BookOpen} color="orange"  />
       </div>
 
-      {/* Admin Profile & Account Security Card */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl shadow-inner">
-            {user?.name?.charAt(0) || 'A'}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-black text-xl text-slate-800">{user?.name || 'Administrator'}</h3>
-              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-indigo-100">
-                Administrator
-              </span>
-            </div>
-            <p className="text-slate-400 text-sm font-medium mt-1">{user?.email || 'admin@college.com'}</p>
-          </div>
+      {/* Admin Profile Card */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-5">
+        <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl shadow-inner flex-shrink-0">
+          {user?.name?.charAt(0) || 'A'}
         </div>
-
-        <button
-          onClick={() => setChangePasswordModal(prev => ({ ...prev, open: true }))}
-          className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-lg shadow-indigo-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Key size={17} />
-          <span>Change My Password</span>
-        </button>
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-black text-xl text-slate-800">{user?.name || 'Administrator'}</h3>
+            <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-indigo-100">
+              Administrator
+            </span>
+          </div>
+          <p className="text-slate-400 text-sm font-medium mt-1">{user?.email || 'admin@college.com'}</p>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50">

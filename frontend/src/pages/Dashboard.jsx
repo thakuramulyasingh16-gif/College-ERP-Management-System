@@ -5,7 +5,7 @@ import AdminDashboard from '../components/AdminDashboard';
 import TeacherDashboard from '../components/TeacherDashboard';
 import StudentDashboard from '../components/StudentDashboard';
 import Clock from '../components/Clock';
-import { Menu, GraduationCap, ShieldCheck, LogOut } from 'lucide-react';
+import { Menu, GraduationCap, ShieldCheck } from 'lucide-react';
 import api from '../api';
 import { getMediaUrl } from '../utils/api';
 
@@ -142,30 +142,6 @@ const Dashboard = () => {
                 {user?.email}
               </p>
             </div>
-
-            {/* Mobile Header Logout Button */}
-            <button
-              onClick={logout}
-              className="lg:hidden"
-              style={{
-                padding: '0.45rem 0.75rem',
-                borderRadius: '12px',
-                background: '#FEF2F2',
-                color: 'var(--clay-danger)',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: 'var(--clay-shadow-sm)',
-              }}
-              title="Logout"
-            >
-              <LogOut size={16} strokeWidth={2.2} />
-              <span>Logout</span>
-            </button>
 
             {/* Profile Avatar inside Soft Clay Container (Functionality 100% Preserved) */}
             <label

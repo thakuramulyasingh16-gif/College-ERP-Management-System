@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Clock from './components/Clock';
 
 /**
  * ProtectedRoute: blocks unauthenticated access to any wrapped route.
@@ -42,7 +41,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}<Clock /></>;
+  return <>{children}</>;
 };
 
 /**
