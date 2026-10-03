@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNIQUE,
     course_id INT,
-    roll_no VARCHAR(20) UNIQUE NOT NULL,
+    roll_no VARCHAR(20) UNIQUE NULL,
+    roll_no_locked BOOLEAN NOT NULL DEFAULT FALSE,
     session VARCHAR(20),
     current_semester INT DEFAULT 1,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS students (
 CREATE TABLE IF NOT EXISTS staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNIQUE,
+    teacher_code VARCHAR(30) UNIQUE NOT NULL,
     department_id INT,
     designation VARCHAR(100),
     profession VARCHAR(100),

@@ -15,7 +15,7 @@ const mockUsers = {
 };
 
 const mockStaff = {
-  2: { id: 5, user_id: 2 } // Staff ID is 5
+  2: { id: 5, user_id: 2, teacher_code: 'TCH-001' } // Teacher Code is TCH-001
 };
 
 const mockStudents = {
@@ -175,7 +175,7 @@ async function runPasswordFlowTests() {
     }, {
       userId: 2,
       newPassword: 'ResetTeacherPass@123',
-      confirmedIdentifier: '999' // Actual staff.id is 5
+      confirmedIdentifier: 'WRONG-TCH' // Actual teacher_code is TCH-001
     });
     assert.strictEqual(wrongTeacherIdRes.status, 400, 'Expected 400 for wrong teacher ID');
     assert.strictEqual(wrongTeacherIdRes.body.message, 'Identity confirmation failed: Teacher ID does not match');
@@ -188,7 +188,7 @@ async function runPasswordFlowTests() {
     }, {
       userId: 2,
       newPassword: 'ResetTeacherPass@123',
-      confirmedIdentifier: '5' // Actual staff.id is 5
+      confirmedIdentifier: 'TCH-001' // Actual teacher_code is TCH-001
     });
     assert.strictEqual(correctTeacherRes.status, 200, 'Expected 200 for correct teacher reset');
     assert.strictEqual(correctTeacherRes.body.success, true);

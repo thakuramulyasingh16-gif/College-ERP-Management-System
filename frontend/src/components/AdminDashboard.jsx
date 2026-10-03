@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchData, getToken, authFetch, getMediaUrl } from '../utils/api';
 import { 
   Users, GraduationCap, BookOpen, TrendingUp, Plus, Trash2, PlusCircle, Search, Key, Building2,
-  Edit, X, ClipboardCheck, Bell, CheckCircle, AlertCircle, Filter, Calendar
+  Edit, X, ClipboardCheck, Bell, CheckCircle, AlertCircle, Filter, Calendar, Unlock
 } from 'lucide-react';
 import { Loader, ErrorMessage } from './UIHelpers';
 import { generateSessions, UG_COURSES, PG_COURSES } from '../utils/sessionHelper';
@@ -70,8 +70,8 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   const [editStudentModal, setEditStudentModal] = useState({ open: false, data: null });
 
   // Forms
-  const [teacherForm, setTeacherForm] = useState({ name: '', email: '', password: '', mobile: '', department_id: '', designation: 'Professor', profession: '', profile_image: null });
-  const [studentForm, setStudentForm] = useState({ name: '', email: '', password: '', mobile: '', course_id: '', admission_year: '', roll_no: '', profile_image: null });
+  const [teacherForm, setTeacherForm] = useState({ teacher_code: '', name: '', email: '', password: '', mobile: '', department_id: '', designation: 'Professor', profession: '', profile_image: null });
+  const [studentForm, setStudentForm] = useState({ name: '', email: '', password: '', mobile: '', course_id: '', admission_year: '', profile_image: null });
   const [deptForm, setDeptForm] = useState({ name: '' });
   const [courseForm, setCourseForm] = useState({ name: '', department_id: '', duration_years: 3 });
   const [sessionForm, setSessionForm] = useState({ session_name: '', duration_years: 3 });
@@ -309,6 +309,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     formData.append('name', data.name);
     formData.append('email', data.email);
     formData.append('mobile', data.mobile);
+    if (data.teacher_code) formData.append('teacher_code', data.teacher_code);
     formData.append('department_id', data.department_id);
     formData.append('designation', data.designation);
     formData.append('profession', data.profession);
@@ -323,6 +324,16 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
       fetchStaff();
     } catch (err) {
       alert(err.response?.data?.message || 'Error updating teacher');
+    }
+  };
+
+  const handleUnlockRollNumber = async (userId) => {
+    try {
+      const res = await api.post(`/students/${userId}/unlock-roll-number`);
+      setStudents(prev => prev.map(st => st.user_id === userId ? { ...st, roll_no_locked: false } : st));
+      alert(res.data?.message || 'Roll number unlocked. Student can now re-enter it.');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to unlock roll number');
     }
   };
 
@@ -667,7 +678,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
             Object.keys(teacherForm).forEach(key => { if (teacherForm[key] !== null) formData.append(key, teacherForm[key]); });
             try {
               await api.post('/teachers', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-              setTeacherForm({ name: '', email: '', password: '', mobile: '', department_id: '', designation: 'Professor', profession: '', profile_image: null });
+              setTeacherForm({ teacher_code: '', name: '', email: '', password: '', mobile: '', department_id: '', designation: 'Professor', profession: '', profile_image: null });
               setTeacherPreview(null); fetchStaff(); alert('Created!');
             } catch (err) { alert(err.response?.data?.message || 'Error'); }
           }} className="space-y-4">
@@ -679,6 +690,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                 <input type="file" className="hidden" accept="image/*" onChange={e => handleFileChange(e, setTeacherForm, setTeacherPreview, teacherForm)}  />
               </label>
             </div>
+            <input type="text" placeholder="Teacher ID (e.g. TCH-001)" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={teacherForm.teacher_code} onChange={e => setTeacherForm({...teacherForm, teacher_code: e.target.value})} required  />
             <input type="text" placeholder="Name" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={teacherForm.name} onChange={e => setTeacherForm({...teacherForm, name: e.target.value})} required  />
             <input type="email" placeholder="Email" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={teacherForm.email} onChange={e => setTeacherForm({...teacherForm, email: e.target.value})} required  />
             <input type="text" placeholder="Mobile" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={teacherForm.mobile} onChange={e => setTeacherForm({...teacherForm, mobile: e.target.value})} required  />
@@ -697,6 +709,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
               <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
                 <tr>
                   <th className="px-6 py-4">Photo</th>
+                  <th className="px-6 py-4">Teacher ID</th>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Mobile</th>
                   <th className="px-6 py-4">Department</th>
@@ -712,6 +725,11 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                           {s?.profile_image ? <img src={getMediaUrl(s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black font-mono">
+                          {s?.teacher_code || `TCH-${s?.staff_id}`}
+                        </span>
+                      </td>
                       <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.email}</p></td>
                       <td className="px-6 py-4 font-bold text-slate-500">{s?.mobile}</td>
                       <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black">{s?.department}</span></td>
@@ -724,7 +742,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                           userId: s?.user_id,
                           targetName: s?.name,
                           targetRole: 'teacher',
-                          expectedIdentifier: s?.staff_id
+                          expectedIdentifier: s?.teacher_code || `TCH-${s?.staff_id}`
                         })} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                         <button onClick={() => handleDeleteTeacher(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
                       </td>
@@ -732,7 +750,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest">
+                    <td colSpan="6" className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest">
                       No teachers found
                     </td>
                   </tr>
@@ -779,7 +797,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
             Object.keys(studentForm).forEach(key => { if (studentForm[key] !== null) formData.append(key, studentForm[key]); });
             try {
               await api.post('/students', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-              setStudentForm({ name: '', email: '', password: '', mobile: '', course_id: '', admission_year: '', roll_no: '', profile_image: null });
+              setStudentForm({ name: '', email: '', password: '', mobile: '', course_id: '', admission_year: '', profile_image: null });
               setStudentPreview(null); fetchStudents(); alert('Created!');
             } catch (err) { alert(err.response?.data?.message || 'Error'); }
           }} className="space-y-4">
@@ -795,7 +813,6 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
             <input type="email" placeholder="Email" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={studentForm.email} onChange={e => setStudentForm({...studentForm, email: e.target?.value})} required  />
             <input type="text" placeholder="Mobile" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={studentForm.mobile} onChange={e => setStudentForm({...studentForm, mobile: e.target?.value})} required  />
             <input type="password" placeholder="Password" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={studentForm.password} onChange={e => setStudentForm({...studentForm, password: e.target?.value})} required  />
-            <input type="text" placeholder="Roll No" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={studentForm.roll_no} onChange={e => setStudentForm({...studentForm, roll_no: e.target?.value})} required  />
             <select className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={studentForm.course_id} onChange={e => setStudentForm({...studentForm, course_id: e.target?.value})} required>
               <option value="">Select Course</option>
               {courses?.map(c => <option key={c?.id} value={c?.id}>{c?.name}</option>)}
@@ -824,20 +841,41 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                       </div>
                     </td>
                     <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.course}</p></td>
-                    <td className="px-6 py-4 font-bold text-slate-500">{s?.roll_number}</td>
+                    <td className="px-6 py-4">
+                      {s?.roll_number ? (
+                        <span className="font-bold text-slate-700 font-mono">{s.roll_number}</span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-black">Not set yet</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 font-bold text-slate-400">{s?.admission_year || "N/A"}</td>
                     <td className="px-6 py-4"><span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full uppercase">{s?.session || "N/A"}</span></td>
-                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                    <td className="px-6 py-4 text-right flex justify-end gap-2 items-center">
+                      {s?.roll_no_locked ? (
+                        <button 
+                          onClick={() => handleUnlockRollNumber(s?.user_id)} 
+                          className="p-2 text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors" 
+                          title="Unlock Roll Number"
+                        >
+                          <Unlock size={18} />
+                        </button>
+                      ) : null}
                       <button onClick={() => {
                         setEditStudentModal({ open: true, data: {...s, new_profile_image: null} });
                         setStudentPreview(s.profile_image ? getMediaUrl(s.profile_image) : null);
                       }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
-                      <button onClick={() => openResetModal({
-                        userId: s?.user_id,
-                        targetName: s?.name,
-                        targetRole: 'student',
-                        expectedIdentifier: s?.roll_number
-                      })} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
+                      <button onClick={() => {
+                        if (!s?.roll_number) {
+                          alert("This student has not set their roll number yet — identity cannot be confirmed for password reset.");
+                          return;
+                        }
+                        openResetModal({
+                          userId: s?.user_id,
+                          targetName: s?.name,
+                          targetRole: 'student',
+                          expectedIdentifier: s?.roll_number
+                        });
+                      }} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                       <button onClick={() => handleDeleteStudent(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
                     </td>
                   </tr>
@@ -1478,7 +1516,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                   <input
                     type="text"
                     autoFocus
-                    placeholder={resetModal.targetRole === 'teacher' ? 'e.g. 1' : 'e.g. 2023-BCA-001'}
+                    placeholder={resetModal.targetRole === 'teacher' ? 'e.g. TCH-001' : 'e.g. 2023-BCA-001'}
                     className={`w-full p-3.5 bg-slate-50 border rounded-2xl text-sm font-bold outline-none transition-all ${
                       resetModal.identifierError 
                         ? 'border-red-400 bg-red-50/30 focus:ring-2 focus:ring-red-400/20' 
@@ -1626,6 +1664,10 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Teacher ID</label>
+                  <input type="text" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={editTeacherModal.data.teacher_code || ''} onChange={e => setEditTeacherModal({...editTeacherModal, data: {...editTeacherModal.data, teacher_code: e.target.value}})} required  />
+                </div>
+                <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Name</label>
                   <input type="text" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={editTeacherModal.data.name} onChange={e => setEditTeacherModal({...editTeacherModal, data: {...editTeacherModal.data, name: e.target.value}})} required  />
                 </div>
@@ -1699,7 +1741,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Roll No</label>
-                  <input type="text" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={editStudentModal.data.roll_number} onChange={e => setEditStudentModal({...editStudentModal, data: {...editStudentModal.data, roll_number: e.target.value}})} required  />
+                  <input type="text" className="w-full p-3 bg-slate-50 rounded-2xl text-sm font-bold" value={editStudentModal.data.roll_number || ''} onChange={e => setEditStudentModal({...editStudentModal, data: {...editStudentModal.data, roll_number: e.target.value}})} placeholder="Not set yet"  />
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Course</label>

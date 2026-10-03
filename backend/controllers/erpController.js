@@ -215,7 +215,7 @@ exports.deleteSubject = async (req, res) => {
 // Teachers/Staff
 exports.getStaff = async (req, res) => {
   let query = `
-    SELECT u.id as user_id, s.id as staff_id, u.name, u.email, u.mobile, u.profile_image, 
+    SELECT u.id as user_id, s.id as staff_id, s.teacher_code, u.name, u.email, u.mobile, u.profile_image, 
     d.name as department, s.designation, s.profession, s.department_id
     FROM users u 
     JOIN staff s ON u.id = s.user_id 
@@ -233,8 +233,14 @@ exports.getStaff = async (req, res) => {
 };
 
 exports.createTeacher = async (req, res) => {
-  const { name, email, mobile, password, department_id, designation, profession } = req.body;
+  const { name, email, mobile, password, department_id, designation, profession, teacher_code } = req.body;
   const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
+
+  if (!teacher_code || typeof teacher_code !== 'string' || !teacher_code.trim()) {
+    return res.status(400).json({ success: false, message: "Teacher ID is required" });
+  }
+  const cleanTeacherCode = teacher_code.trim();
+
   try {
     const hashedPassword = await hashPassword(password);
     const [userResult] = await db.execute(
@@ -242,16 +248,30 @@ exports.createTeacher = async (req, res) => {
       [name, email, mobile, hashedPassword, profile_image]
     );
     await db.execute(
-      "INSERT INTO staff (user_id, department_id, designation, profession) VALUES (?, ?, ?, ?)", 
-      [userResult.insertId, department_id, designation, profession]
+      "INSERT INTO staff (user_id, teacher_code, department_id, designation, profession) VALUES (?, ?, ?, ?, ?)", 
+      [userResult.insertId, cleanTeacherCode, department_id, designation, profession]
     );
     res.status(201).json({ success: true, message: "Teacher created" });
-  } catch (error) { return safeError(res, error); }
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY' || (error.message && error.message.includes('Duplicate entry'))) {
+      if (error.message && error.message.includes('teacher_code')) {
+        return res.status(400).json({ success: false, message: "Teacher ID already exists, please use a different one" });
+      }
+      if (error.message && error.message.includes('email')) {
+        return res.status(400).json({ success: false, message: "Email already exists" });
+      }
+      if (error.message && error.message.includes('mobile')) {
+        return res.status(400).json({ success: false, message: "Mobile number already exists" });
+      }
+      return res.status(400).json({ success: false, message: "Teacher ID already exists, please use a different one" });
+    }
+    return safeError(res, error);
+  }
 };
 
 exports.updateTeacher = async (req, res) => {
   const { id } = req.params;
-  const { name, email, mobile, department_id, designation, profession } = req.body;
+  const { name, email, mobile, department_id, designation, profession, teacher_code } = req.body;
   const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
   
   try {
@@ -268,12 +288,33 @@ exports.updateTeacher = async (req, res) => {
       await db.execute("UPDATE users SET name = ?, email = ?, mobile = ? WHERE id = ?", [name, email, mobile, id]);
     }
 
-    await db.execute(
-      "UPDATE staff SET department_id = ?, designation = ?, profession = ? WHERE user_id = ?", 
-      [department_id, designation, profession, id]
-    );
+    if (teacher_code && typeof teacher_code === 'string' && teacher_code.trim()) {
+      await db.execute(
+        "UPDATE staff SET teacher_code = ?, department_id = ?, designation = ?, profession = ? WHERE user_id = ?", 
+        [teacher_code.trim(), department_id, designation, profession, id]
+      );
+    } else {
+      await db.execute(
+        "UPDATE staff SET department_id = ?, designation = ?, profession = ? WHERE user_id = ?", 
+        [department_id, designation, profession, id]
+      );
+    }
     res.status(200).json({ success: true, message: "Teacher updated successfully" });
-  } catch (error) { return safeError(res, error); }
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY' || (error.message && error.message.includes('Duplicate entry'))) {
+      if (error.message && error.message.includes('teacher_code')) {
+        return res.status(400).json({ success: false, message: "Teacher ID already exists, please use a different one" });
+      }
+      if (error.message && error.message.includes('email')) {
+        return res.status(400).json({ success: false, message: "Email already exists" });
+      }
+      if (error.message && error.message.includes('mobile')) {
+        return res.status(400).json({ success: false, message: "Mobile number already exists" });
+      }
+      return res.status(400).json({ success: false, message: "Teacher ID already exists, please use a different one" });
+    }
+    return safeError(res, error);
+  }
 };
 
 exports.deleteTeacher = async (req, res) => {
@@ -293,7 +334,7 @@ exports.deleteTeacher = async (req, res) => {
 exports.getStudents = async (req, res) => {
   try {
     let query = `
-      SELECT u.id as user_id, st.id as student_id, u.name, u.email, u.mobile, st.roll_no as roll_number, st.current_semester, 
+      SELECT u.id as user_id, st.id as student_id, u.name, u.email, u.mobile, st.roll_no as roll_number, st.roll_no_locked, st.current_semester, 
       c.name as course, st.course_id, st.session, st.admission_year, u.profile_image, d.name as department, c.department_id 
       FROM users u 
       JOIN students st ON u.id = st.user_id 
@@ -334,18 +375,33 @@ exports.createStudent = async (req, res) => {
     const session = `${admissionYear}-${endYear}`;
     console.log("Calculated Session:", session, "for Course:", courseName, "Admission Year:", admissionYear);
 
+    const cleanRollNo = (roll_no && typeof roll_no === 'string' && roll_no.trim()) ? roll_no.trim() : null;
+
     const hashedPassword = await hashPassword(password);
     const [userResult] = await db.execute(
       "INSERT INTO users (name, email, mobile, password, role, profile_image) VALUES (?, ?, ?, ?, 'student', ?)", 
       [name, email, mobile, hashedPassword, profile_image]
     );
     await db.execute(
-      "INSERT INTO students (user_id, course_id, admission_year, session, roll_no) VALUES (?, ?, ?, ?, ?)", 
-      [userResult.insertId, course_id, admissionYear, session, roll_no]
+      "INSERT INTO students (user_id, course_id, admission_year, session, roll_no, roll_no_locked) VALUES (?, ?, ?, ?, ?, FALSE)", 
+      [userResult.insertId, course_id, admissionYear, session, cleanRollNo]
     );
     console.log("Student saved with session:", session);
     res.status(201).json({ success: true, message: "Student created" });
-  } catch (error) { return safeError(res, error); }
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY' || (error.message && error.message.includes('Duplicate entry'))) {
+      if (error.message && error.message.includes('roll_no')) {
+        return res.status(400).json({ success: false, message: "This roll number is already in use" });
+      }
+      if (error.message && error.message.includes('email')) {
+        return res.status(400).json({ success: false, message: "Email already exists" });
+      }
+      if (error.message && error.message.includes('mobile')) {
+        return res.status(400).json({ success: false, message: "Mobile number already exists" });
+      }
+    }
+    return safeError(res, error);
+  }
 };
 
 exports.updateStudent = async (req, res) => {
@@ -400,6 +456,78 @@ exports.deleteStudent = async (req, res) => {
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Student deleted" });
   } catch (error) { return safeError(res, error); }
+};
+
+// Student Self-Service Roll Number
+exports.setOwnRollNumber = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Authentication required" });
+  }
+
+  const { roll_no } = req.body;
+  if (!roll_no || typeof roll_no !== 'string' || !roll_no.trim()) {
+    return res.status(400).json({ success: false, message: "Roll number is required" });
+  }
+  const cleanRollNo = roll_no.trim();
+
+  try {
+    const [rows] = await db.execute("SELECT id, roll_no, roll_no_locked FROM students WHERE user_id = ?", [userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Student record not found" });
+    }
+
+    const student = rows[0];
+    if (Boolean(student.roll_no_locked)) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Roll number already set. Contact admin to request a change." 
+      });
+    }
+
+    await db.execute(
+      "UPDATE students SET roll_no = ?, roll_no_locked = TRUE WHERE user_id = ?",
+      [cleanRollNo, userId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Roll number saved successfully"
+    });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY' || (error.message && error.message.includes('Duplicate entry'))) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "This roll number is already in use" 
+      });
+    }
+    return safeError(res, error, "Failed to save roll number");
+  }
+};
+
+exports.unlockStudentRollNumber = async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Student ID is required" });
+  }
+
+  try {
+    const [result] = await db.execute(
+      "UPDATE students SET roll_no_locked = FALSE WHERE user_id = ? OR id = ?",
+      [id, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Student record not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Roll number unlocked. Student can now re-enter it."
+    });
+  } catch (error) {
+    return safeError(res, error, "Failed to unlock roll number");
+  }
 };
 
 exports.changeOwnPassword = async (req, res) => {
@@ -475,12 +603,12 @@ exports.resetPassword = async (req, res) => {
     const cleanConfirmed = confirmedIdentifier.trim().toLowerCase();
 
     if (targetUser.role === 'teacher') {
-      const [staffRows] = await db.execute("SELECT id FROM staff WHERE user_id = ?", [userId]);
-      if (staffRows.length === 0) {
-        return res.status(400).json({ success: false, message: "Teacher staff record not found" });
+      const [staffRows] = await db.execute("SELECT teacher_code FROM staff WHERE user_id = ?", [userId]);
+      if (staffRows.length === 0 || !staffRows[0].teacher_code) {
+        return res.status(400).json({ success: false, message: "Teacher record or Teacher ID not found" });
       }
-      const actualStaffId = String(staffRows[0].id).trim().toLowerCase();
-      if (actualStaffId !== cleanConfirmed) {
+      const actualTeacherCode = String(staffRows[0].teacher_code).trim().toLowerCase();
+      if (actualTeacherCode !== cleanConfirmed) {
         return res.status(400).json({ 
           success: false, 
           message: "Identity confirmation failed: Teacher ID does not match" 
@@ -491,7 +619,14 @@ exports.resetPassword = async (req, res) => {
       if (studentRows.length === 0) {
         return res.status(400).json({ success: false, message: "Student record not found" });
       }
-      const actualRollNo = String(studentRows[0].roll_no).trim().toLowerCase();
+      const rawRollNo = studentRows[0].roll_no;
+      if (!rawRollNo || !String(rawRollNo).trim()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "This student has not set their roll number yet — identity cannot be confirmed for password reset." 
+        });
+      }
+      const actualRollNo = String(rawRollNo).trim().toLowerCase();
       if (actualRollNo !== cleanConfirmed) {
         return res.status(400).json({ 
           success: false, 

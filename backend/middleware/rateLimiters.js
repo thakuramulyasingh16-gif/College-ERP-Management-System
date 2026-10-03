@@ -81,10 +81,19 @@ const changePasswordRateLimiter = createSimpleLimiter({
   message: 'Too many password change attempts. Please try again in 15 minutes.'
 });
 
+// 10 roll number update attempts per 15 minutes per user/IP
+const rollNumberRateLimiter = createSimpleLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 10,
+  name: 'roll-number',
+  message: 'Too many roll number update attempts. Please try again in 15 minutes.'
+});
+
 module.exports = {
   complaintRateLimiter,
   submissionRateLimiter,
   passwordResetRateLimiter,
-  changePasswordRateLimiter
+  changePasswordRateLimiter,
+  rollNumberRateLimiter
 };
 

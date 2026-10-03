@@ -109,7 +109,7 @@ exports.login = async (req, res) => {
 
     if (user.role === 'student') {
       const [studentInfo] = await db.execute(`
-        SELECT st.id as student_record_id, st.course_id, st.roll_no, st.session, st.current_semester,
+        SELECT st.id as student_record_id, st.course_id, st.roll_no, st.roll_no_locked, st.session, st.current_semester,
                c.name as course, d.name as department
         FROM students st
         LEFT JOIN courses c ON st.course_id = c.id
@@ -120,7 +120,7 @@ exports.login = async (req, res) => {
       }
     } else if (user.role === 'teacher') {
       const [staffInfo] = await db.execute(`
-        SELECT st.id as staff_record_id, st.department_id, st.designation, st.profession,
+        SELECT st.id as staff_record_id, st.teacher_code, st.department_id, st.designation, st.profession,
                d.name as department
         FROM staff st
         LEFT JOIN departments d ON st.department_id = d.id

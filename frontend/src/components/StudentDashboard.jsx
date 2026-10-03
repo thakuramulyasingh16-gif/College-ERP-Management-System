@@ -41,6 +41,39 @@ const StudentDashboard = ({ activeTab }) => {
   const [complaintForm, setComplaintForm] = useState({ title: '', message: '' });
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
 
+  // Roll Number State
+  const [rollNoInput, setRollNoInput] = useState('');
+  const [rollNoSubmitting, setRollNoSubmitting] = useState(false);
+  const [rollNoError, setRollNoError] = useState('');
+  const [rollNoSuccess, setRollNoSuccess] = useState('');
+
+  const handleSaveRollNumber = async (e) => {
+    e.preventDefault();
+    if (!rollNoInput || !rollNoInput.trim()) {
+      setRollNoError('Please enter your roll number');
+      return;
+    }
+    setRollNoSubmitting(true);
+    setRollNoError('');
+    setRollNoSuccess('');
+    try {
+      const res = await api.post('/student/roll-number', { roll_no: rollNoInput.trim() });
+      const newRoll = rollNoInput.trim();
+      setRollNoSuccess(res.data?.message || 'Roll number saved successfully');
+      setRollNoInput('');
+      setStudentProfile(prev => ({
+        ...prev,
+        roll_number: newRoll,
+        roll_no: newRoll,
+        roll_no_locked: true
+      }));
+    } catch (err) {
+      setRollNoError(err.response?.data?.message || 'Failed to save roll number');
+    } finally {
+      setRollNoSubmitting(false);
+    }
+  };
+
   const fetchAllData = async () => {
     if (loading) return;
     setLoading(true);
@@ -244,18 +277,103 @@ const StudentDashboard = ({ activeTab }) => {
 
   const renderOverview = () => {
     console.log("Student Dashboard rendering for user:", user);
+    const currentRoll = studentProfile?.roll_number || studentProfile?.roll_no || null;
+    const isLocked = Boolean(studentProfile?.roll_no_locked);
+    const showAddForm = !currentRoll || !isLocked;
+
     return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl mb-6">
-        <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20">{studentProfile?.name?.charAt(0)}</div>
-            <div>
-                <h2 className="text-xl font-black text-slate-800 uppercase">{studentProfile?.name}</h2>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{studentProfile?.department} • {studentProfile?.course}</p>
-                <p className="text-blue-600 font-black text-sm mt-1 bg-blue-50 px-3 py-0.5 rounded-full inline-block">Session: {studentProfile?.session}</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20 overflow-hidden">
+              {studentProfile?.profile_image ? (
+                <img src={getMediaUrl(studentProfile.profile_image)} className="w-full h-full object-cover" alt="Profile" />
+              ) : (
+                studentProfile?.name?.charAt(0) || 'S'
+              )}
             </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-800 uppercase">{studentProfile?.name}</h2>
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{studentProfile?.department} • {studentProfile?.course}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-blue-600 font-black text-sm bg-blue-50 px-3 py-0.5 rounded-full inline-block">
+                  Session: {studentProfile?.session || 'N/A'}
+                </span>
+                {currentRoll && isLocked && (
+                  <span className="text-slate-700 font-black text-sm bg-slate-100 px-3 py-0.5 rounded-full inline-block font-mono">
+                    Roll No: {currentRoll}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* If roll number is set and locked, display read-only status with notice */}
+          {currentRoll && isLocked && (
+            <div className="bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl md:text-right">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Assigned Roll Number</p>
+              <p className="font-mono font-black text-slate-800 text-lg">{currentRoll}</p>
+              <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Roll number set. To change it, please contact the admin.</p>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* One-time / Unlocked Roll Number Form */}
+      {showAddForm && (
+        <div className="bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-xl mb-6 relative overflow-hidden">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest mb-1">
+              <GraduationCap size={18} />
+              <span>University Roll Number</span>
+            </div>
+            <h3 className="text-xl font-black text-slate-800 mb-2">
+              {currentRoll ? "Update Your Roll Number" : "Add Your Roll Number"}
+            </h3>
+            <p className="text-slate-500 text-xs font-semibold mb-4 leading-relaxed">
+              {currentRoll 
+                ? "Your roll number was unlocked by an administrator. Please submit your corrected roll number below. It will be locked again automatically once saved." 
+                : "Students are admitted prior to Lucknow University assigning roll numbers. Please enter your university roll number below. You can only set this once; after saving, only an administrator can unlock it for corrections."}
+            </p>
+
+            <form onSubmit={handleSaveRollNumber} className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                placeholder="Enter Roll Number (e.g. 2023-BCA-001)"
+                className="flex-1 p-3.5 bg-white border border-indigo-100 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono shadow-sm"
+                value={rollNoInput}
+                onChange={e => {
+                  setRollNoInput(e.target.value);
+                  setRollNoError('');
+                }}
+                disabled={rollNoSubmitting}
+                required
+              />
+              <button
+                type="submit"
+                disabled={rollNoSubmitting || !rollNoInput.trim()}
+                className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 whitespace-nowrap"
+              >
+                {rollNoSubmitting ? 'Saving...' : 'Save Roll Number'}
+              </button>
+            </form>
+
+            {rollNoError && (
+              <p className="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
+                <AlertCircle size={14} />
+                <span>{rollNoError}</span>
+              </p>
+            )}
+            {rollNoSuccess && (
+              <p className="text-green-600 text-xs font-bold mt-2 flex items-center gap-1">
+                <CheckCircle size={14} />
+                <span>{rollNoSuccess}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard title="Attendance" value={`${calculateAttendance()}%`} icon={ClipboardCheck} color="blue"  />
         <StatCard 

@@ -8,7 +8,8 @@ const {
   complaintRateLimiter, 
   submissionRateLimiter, 
   passwordResetRateLimiter,
-  changePasswordRateLimiter
+  changePasswordRateLimiter,
+  rollNumberRateLimiter
 } = require("../middleware/rateLimiters");
 
 // Common
@@ -48,6 +49,8 @@ router.get("/students", auth(["admin", "teacher", "student"]), erpController.get
 router.post("/students", auth(["admin", "teacher"]), upload.single('profile_image'), validateUploadedFile, erpController.createStudent);
 router.put("/students/:id", auth(["admin"]), upload.single('profile_image'), validateUploadedFile, erpController.updateStudent);
 router.delete("/students/:id", auth(["admin"]), erpController.deleteStudent);
+router.post("/student/roll-number", auth(["student"]), rollNumberRateLimiter, erpController.setOwnRollNumber);
+router.post("/students/:id/unlock-roll-number", auth(["admin"]), erpController.unlockStudentRollNumber);
 
 // Profile
 router.post("/update-profile-image", auth(["admin", "teacher", "student"]), upload.single('profile_image'), validateUploadedFile, erpController.updateProfileImage);

@@ -13,7 +13,9 @@ const migrationFiles = [
   'migrate-v9.js',
   'migrate-v10.js',
   'migrate-v11.js',
-  'migrate-v12.js'
+  'migrate-v12.js',
+  'migrate-v13.js',
+  'migrate-v14.js'
 ];
 
 console.log('--- Starting All Database Migrations ---');
