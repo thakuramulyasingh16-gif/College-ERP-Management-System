@@ -215,18 +215,39 @@ exports.deleteSubject = async (req, res) => {
 // Teachers/Staff
 exports.getStaff = async (req, res) => {
   let query = `
-    SELECT u.id as user_id, s.id as staff_id, s.teacher_code, u.name, u.email, u.mobile, u.profile_image, 
+    SELECT u.id as user_id, s.id as staff_id, 
+    COALESCE(s.teacher_code, CONCAT('TCH-', COALESCE(s.id, u.id))) as teacher_code, 
+    u.name, u.email, u.mobile, u.profile_image, 
     d.name as department, s.designation, s.profession, s.department_id
     FROM users u 
-    JOIN staff s ON u.id = s.user_id 
+    LEFT JOIN staff s ON u.id = s.user_id 
     LEFT JOIN departments d ON s.department_id = d.id 
     WHERE u.role = 'teacher'
+    ORDER BY u.id DESC
   `;
   try {
     const [rows] = await db.execute(query);
-    // Teachers data fetched
     res.status(200).json({ success: true, data: rows });
   } catch (error) { 
+    // Fallback if s.teacher_code column does not exist yet in database
+    if (error.code === 'ER_BAD_FIELD_ERROR' || (error.message && error.message.includes('teacher_code'))) {
+      try {
+        const [fallbackRows] = await db.execute(`
+          SELECT u.id as user_id, s.id as staff_id, 
+          CONCAT('TCH-', COALESCE(s.id, u.id)) as teacher_code, 
+          u.name, u.email, u.mobile, u.profile_image, 
+          d.name as department, s.designation, s.profession, s.department_id
+          FROM users u 
+          LEFT JOIN staff s ON u.id = s.user_id 
+          LEFT JOIN departments d ON s.department_id = d.id 
+          WHERE u.role = 'teacher'
+          ORDER BY u.id DESC
+        `);
+        return res.status(200).json({ success: true, data: fallbackRows });
+      } catch (fallbackErr) {
+        console.error("Fallback error fetching staff:", fallbackErr);
+      }
+    }
     console.error("Error fetching staff:", error);
     return safeError(res, error); 
   }
@@ -334,13 +355,17 @@ exports.deleteTeacher = async (req, res) => {
 exports.getStudents = async (req, res) => {
   try {
     let query = `
-      SELECT u.id as user_id, st.id as student_id, u.name, u.email, u.mobile, st.roll_no as roll_number, st.roll_no_locked, st.current_semester, 
+      SELECT u.id as user_id, st.id as student_id, u.name, u.email, u.mobile, 
+      st.roll_no as roll_number, 
+      COALESCE(st.roll_no_locked, FALSE) as roll_no_locked, 
+      st.current_semester, 
       c.name as course, st.course_id, st.session, st.admission_year, u.profile_image, d.name as department, c.department_id 
       FROM users u 
-      JOIN students st ON u.id = st.user_id 
+      LEFT JOIN students st ON u.id = st.user_id 
       LEFT JOIN courses c ON st.course_id = c.id 
       LEFT JOIN departments d ON c.department_id = d.id
       WHERE u.role = 'student'
+      ORDER BY u.id DESC
     `;
     const [rows] = await db.execute(query);
     res.status(200).json({
@@ -348,6 +373,27 @@ exports.getStudents = async (req, res) => {
       data: rows
     });
   } catch (error) { 
+    // Fallback if st.roll_no_locked column does not exist yet in database
+    if (error.code === 'ER_BAD_FIELD_ERROR' || (error.message && error.message.includes('roll_no_locked'))) {
+      try {
+        const [fallbackRows] = await db.execute(`
+          SELECT u.id as user_id, st.id as student_id, u.name, u.email, u.mobile, 
+          st.roll_no as roll_number, 
+          (st.roll_no IS NOT NULL AND st.roll_no != '') as roll_no_locked, 
+          st.current_semester, 
+          c.name as course, st.course_id, st.session, st.admission_year, u.profile_image, d.name as department, c.department_id 
+          FROM users u 
+          LEFT JOIN students st ON u.id = st.user_id 
+          LEFT JOIN courses c ON st.course_id = c.id 
+          LEFT JOIN departments d ON c.department_id = d.id
+          WHERE u.role = 'student'
+          ORDER BY u.id DESC
+        `);
+        return res.status(200).json({ success: true, data: fallbackRows });
+      } catch (fallbackErr) {
+        console.error("Fallback error fetching students:", fallbackErr);
+      }
+    }
     console.error("Error fetching students:", error);
     res.status(500).json({ success: false, message: "Error fetching students" }); 
   }

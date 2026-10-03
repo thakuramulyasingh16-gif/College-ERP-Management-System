@@ -108,25 +108,62 @@ exports.login = async (req, res) => {
     };
 
     if (user.role === 'student') {
-      const [studentInfo] = await db.execute(`
-        SELECT st.id as student_record_id, st.course_id, st.roll_no, st.roll_no_locked, st.session, st.current_semester,
-               c.name as course, d.name as department
-        FROM students st
-        LEFT JOIN courses c ON st.course_id = c.id
-        LEFT JOIN departments d ON c.department_id = d.id
-        WHERE st.user_id = ?`, [user.id]);
-      if (studentInfo.length > 0) {
-        detailedUser = { ...detailedUser, ...studentInfo[0] };
+      try {
+        const [studentInfo] = await db.execute(`
+          SELECT st.id as student_record_id, st.course_id, st.roll_no, 
+                 COALESCE(st.roll_no_locked, (st.roll_no IS NOT NULL AND st.roll_no != '')) as roll_no_locked, 
+                 st.session, st.current_semester,
+                 c.name as course, d.name as department
+          FROM students st
+          LEFT JOIN courses c ON st.course_id = c.id
+          LEFT JOIN departments d ON c.department_id = d.id
+          WHERE st.user_id = ?`, [user.id]);
+        if (studentInfo.length > 0) {
+          detailedUser = { ...detailedUser, ...studentInfo[0] };
+        }
+      } catch (stErr) {
+        try {
+          const [fallbackInfo] = await db.execute(`
+            SELECT st.id as student_record_id, st.course_id, st.roll_no, 
+                   (st.roll_no IS NOT NULL AND st.roll_no != '') as roll_no_locked, 
+                   st.session, st.current_semester,
+                   c.name as course, d.name as department
+            FROM students st
+            LEFT JOIN courses c ON st.course_id = c.id
+            LEFT JOIN departments d ON c.department_id = d.id
+            WHERE st.user_id = ?`, [user.id]);
+          if (fallbackInfo.length > 0) {
+            detailedUser = { ...detailedUser, ...fallbackInfo[0] };
+          }
+        } catch (_ignore) {}
       }
     } else if (user.role === 'teacher') {
-      const [staffInfo] = await db.execute(`
-        SELECT st.id as staff_record_id, st.teacher_code, st.department_id, st.designation, st.profession,
-               d.name as department
-        FROM staff st
-        LEFT JOIN departments d ON st.department_id = d.id
-        WHERE st.user_id = ?`, [user.id]);
-      if (staffInfo.length > 0) {
-        detailedUser = { ...detailedUser, ...staffInfo[0] };
+      try {
+        const [staffInfo] = await db.execute(`
+          SELECT st.id as staff_record_id, 
+                 COALESCE(st.teacher_code, CONCAT('TCH-', st.id)) as teacher_code, 
+                 st.department_id, st.designation, st.profession,
+                 d.name as department
+          FROM staff st
+          LEFT JOIN departments d ON st.department_id = d.id
+          WHERE st.user_id = ?`, [user.id]);
+        if (staffInfo.length > 0) {
+          detailedUser = { ...detailedUser, ...staffInfo[0] };
+        }
+      } catch (stfErr) {
+        try {
+          const [fallbackInfo] = await db.execute(`
+            SELECT st.id as staff_record_id, 
+                   CONCAT('TCH-', st.id) as teacher_code, 
+                   st.department_id, st.designation, st.profession,
+                   d.name as department
+            FROM staff st
+            LEFT JOIN departments d ON st.department_id = d.id
+            WHERE st.user_id = ?`, [user.id]);
+          if (fallbackInfo.length > 0) {
+            detailedUser = { ...detailedUser, ...fallbackInfo[0] };
+          }
+        } catch (_ignore) {}
       }
     }
 

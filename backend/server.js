@@ -17,14 +17,58 @@ app.use(helmet({
   contentSecurityPolicy: false // Allows frontend to render assets across deployment domains
 }));
 
-// Database Connection Test
+// Database Connection Test & Auto-Schema Migration
 db.getConnection()
   .then(async (connection) => {
     console.log("DB Connected Successfully");
+
+    // 1. users.current_session_token
     try {
       await connection.query("ALTER TABLE users ADD COLUMN current_session_token TEXT DEFAULT NULL");
       console.log("users.current_session_token verified/added.");
     } catch (colErr) { /* column exists */ }
+
+    // 2. staff.teacher_code
+    try {
+      const [staffCols] = await connection.query("SHOW COLUMNS FROM staff LIKE 'teacher_code'");
+      if (staffCols.length === 0) {
+        await connection.query("ALTER TABLE staff ADD COLUMN teacher_code VARCHAR(30) NULL AFTER user_id");
+        await connection.query("UPDATE staff SET teacher_code = CONCAT('TCH-', id) WHERE teacher_code IS NULL OR teacher_code = ''");
+        try {
+          await connection.query("ALTER TABLE staff MODIFY COLUMN teacher_code VARCHAR(30) UNIQUE NOT NULL");
+        } catch (uErr) {
+          console.warn("staff.teacher_code UNIQUE modify notice:", uErr.message);
+        }
+        console.log("staff.teacher_code column added and backfilled.");
+      } else {
+        await connection.query("UPDATE staff SET teacher_code = CONCAT('TCH-', id) WHERE teacher_code IS NULL OR teacher_code = ''");
+      }
+    } catch (err) {
+      console.error("Auto-migration staff.teacher_code error:", err.message);
+    }
+
+    // 3. students.roll_no (allow NULL)
+    try {
+      await connection.query("ALTER TABLE students MODIFY COLUMN roll_no VARCHAR(20) UNIQUE NULL");
+      console.log("students.roll_no modified to NULL-able.");
+    } catch (err) {
+      console.error("Auto-migration students.roll_no modify error:", err.message);
+    }
+
+    // 4. students.roll_no_locked
+    try {
+      const [studentCols] = await connection.query("SHOW COLUMNS FROM students LIKE 'roll_no_locked'");
+      if (studentCols.length === 0) {
+        await connection.query("ALTER TABLE students ADD COLUMN roll_no_locked BOOLEAN NOT NULL DEFAULT FALSE");
+        await connection.query("UPDATE students SET roll_no_locked = TRUE WHERE roll_no IS NOT NULL AND roll_no != ''");
+        console.log("students.roll_no_locked column added and backfilled.");
+      } else {
+        await connection.query("UPDATE students SET roll_no_locked = FALSE WHERE roll_no_locked IS NULL");
+      }
+    } catch (err) {
+      console.error("Auto-migration students.roll_no_locked error:", err.message);
+    }
+
     connection.release();
   })
   .catch(err => {

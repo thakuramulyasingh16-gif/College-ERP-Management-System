@@ -181,36 +181,38 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
     const deptObj = departments?.find(d => d.id === parseInt(deptFilter));
     const deptName = deptObj ? deptObj.name : '';
     
-    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/teachers?search=${searchTerm}&department_id=${deptFilter}&department=${deptName}`, {
+    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/teachers?search=${encodeURIComponent(searchTerm || '')}&department_id=${encodeURIComponent(deptFilter || '')}&department=${encodeURIComponent(deptName || '')}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
     .then(result => {
-      console.log("API HIT: Teachers");
-      console.log(result.data);
-      if(result.success){
-        setTeachers(result.data || []);
+      console.log("API HIT: Teachers", result);
+      if(result && result.success){
+        setTeachers(Array.isArray(result.data) ? result.data : []);
+      } else if (Array.isArray(result)) {
+        setTeachers(result);
       }
     })
-    .catch(err => console.error("Fetch Error:", err));
+    .catch(err => console.error("Fetch Error Teachers:", err));
   };
 
   const fetchStudents = async () => {
     const courseObj = courses?.find(c => c.id === parseInt(courseFilter));
     const courseName = courseObj ? courseObj.name : '';
     
-    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/students?search=${searchTerm}&course=${courseName}&session=${sessionFilter}`, {
+    authFetch(`https://college-erp-management-system-a9xk.onrender.com/api/students?search=${encodeURIComponent(searchTerm || '')}&course=${encodeURIComponent(courseName || '')}&session=${encodeURIComponent(sessionFilter || '')}`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     .then(res => res.json())
     .then(result => {
-      console.log("API HIT: Students");
-      console.log(result.data);
-      if(result.success){
-        setStudents(result.data || []);
+      console.log("API HIT: Students", result);
+      if(result && result.success){
+        setStudents(Array.isArray(result.data) ? result.data : []);
+      } else if (Array.isArray(result)) {
+        setStudents(result);
       }
     })
-    .catch(err => console.error("Fetch Error:", err));
+    .catch(err => console.error("Fetch Error Students:", err));
   };
 
   const fetchFees = async () => {
@@ -657,12 +659,14 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
 
   const renderStaff = () => {
     const filteredTeachers = (teachers || []).filter(t => {
-      const matchesDept = !deptFilter || String(t.department_id) === String(deptFilter);
-      const term = searchTerm.toLowerCase().trim();
+      if (!t) return false;
+      const matchesDept = !deptFilter || String(t.department_id || '') === String(deptFilter);
+      const term = (searchTerm || '').toLowerCase().trim();
       const matchesSearch = !term || 
-        (t.name || "").toLowerCase().includes(term) || 
-        (t.email || "").toLowerCase().includes(term) ||
-        (t.mobile || "").toLowerCase().includes(term);
+        (t.name ? String(t.name).toLowerCase().includes(term) : false) || 
+        (t.email ? String(t.email).toLowerCase().includes(term) : false) ||
+        (t.mobile ? String(t.mobile).toLowerCase().includes(term) : false) ||
+        (t.teacher_code ? String(t.teacher_code).toLowerCase().includes(term) : false);
       return matchesDept && matchesSearch;
     });
 
@@ -718,8 +722,8 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredTeachers.length > 0 ? (
-                  filteredTeachers.map(s => (
-                    <tr key={s?.id} className="hover:bg-slate-50 transition-colors">
+                  filteredTeachers.map((s, idx) => (
+                    <tr key={s?.user_id || s?.staff_id || idx} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden">
                           {s?.profile_image ? <img src={getMediaUrl(s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
@@ -727,22 +731,22 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black font-mono">
-                          {s?.teacher_code || `TCH-${s?.staff_id}`}
+                          {s?.teacher_code ? String(s.teacher_code) : (s?.staff_id ? `TCH-${s.staff_id}` : 'Not set')}
                         </span>
                       </td>
-                      <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.email}</p></td>
-                      <td className="px-6 py-4 font-bold text-slate-500">{s?.mobile}</td>
-                      <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black">{s?.department}</span></td>
+                      <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name || '—'}</p><p className="text-[10px] text-slate-400">{s?.email || '—'}</p></td>
+                      <td className="px-6 py-4 font-bold text-slate-500">{s?.mobile || '—'}</td>
+                      <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black">{s?.department || 'General'}</span></td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button onClick={() => {
                           setEditTeacherModal({ open: true, data: {...s, new_profile_image: null} });
-                          setTeacherPreview(s.profile_image ? getMediaUrl(s.profile_image) : null);
+                          setTeacherPreview(s?.profile_image ? getMediaUrl(s.profile_image) : null);
                         }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
                         <button onClick={() => openResetModal({
                           userId: s?.user_id,
-                          targetName: s?.name,
+                          targetName: s?.name || 'Teacher',
                           targetRole: 'teacher',
-                          expectedIdentifier: s?.teacher_code || `TCH-${s?.staff_id}`
+                          expectedIdentifier: s?.teacher_code ? String(s.teacher_code) : (s?.staff_id ? `TCH-${s.staff_id}` : '')
                         })} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                         <button onClick={() => handleDeleteTeacher(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
                       </td>
@@ -765,22 +769,23 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
 };
   const renderStudents = () => {
     const filteredStudents = (students || []).filter(s => {
+      if (!s) return false;
       // 1. Dept Filter
-      const matchesDept = !deptFilter || String(s.department_id) === String(deptFilter);
+      const matchesDept = !deptFilter || String(s.department_id || '') === String(deptFilter);
       
       // 2. Course Filter
-      const matchesCourse = !courseFilter || String(s.course_id) === String(courseFilter);
+      const matchesCourse = !courseFilter || String(s.course_id || '') === String(courseFilter);
       
       // 3. Session Filter
       const matchesSession = !sessionFilter || 
-        (s.session || "").toLowerCase().trim().includes(sessionFilter.toLowerCase().trim());
+        String(s.session || '').toLowerCase().trim().includes(String(sessionFilter).toLowerCase().trim());
       
       // 4. Search Filter
-      const term = searchTerm.toLowerCase().trim();
+      const term = (searchTerm || '').toLowerCase().trim();
       const matchesSearch = !term || 
-        (s.name || "").toLowerCase().includes(term) || 
-        (s.email || "").toLowerCase().includes(term) ||
-        (s.roll_number || "").toLowerCase().includes(term);
+        (s.name ? String(s.name).toLowerCase().includes(term) : false) || 
+        (s.email ? String(s.email).toLowerCase().includes(term) : false) ||
+        (s.roll_number ? String(s.roll_number).toLowerCase().includes(term) : false);
         
       return matchesDept && matchesCourse && matchesSession && matchesSearch;
     });
@@ -833,17 +838,17 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                 <tr><th className="px-6 py-4">Photo</th><th className="px-6 py-4">Name</th><th className="px-6 py-4">Roll No</th><th className="px-6 py-4">Admission Year</th><th className="px-6 py-4">Session</th><th className="px-6 py-4 text-right">Action</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredStudents.map(s => (
-                  <tr key={s?.user_id} className="hover:bg-slate-50 transition-colors">
+                {filteredStudents.map((s, idx) => (
+                  <tr key={s?.user_id || s?.student_id || idx} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden">
-                        {s?.profile_image ? <img src={getMediaUrl(s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold">{s?.name?.charAt(0) || '?'}</div>}
+                        {s?.profile_image ? <img src={getMediaUrl(s?.profile_image)} className="w-full h-full object-cover"  /> : <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold">{s?.name ? String(s.name).charAt(0) : '?'}</div>}
                       </div>
                     </td>
-                    <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name}</p><p className="text-[10px] text-slate-400">{s?.course}</p></td>
+                    <td className="px-6 py-4"><p className="font-black text-slate-800">{s?.name || '—'}</p><p className="text-[10px] text-slate-400">{s?.course || '—'}</p></td>
                     <td className="px-6 py-4">
                       {s?.roll_number ? (
-                        <span className="font-bold text-slate-700 font-mono">{s.roll_number}</span>
+                        <span className="font-bold text-slate-700 font-mono">{String(s.roll_number)}</span>
                       ) : (
                         <span className="px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-black">Not set yet</span>
                       )}
@@ -851,7 +856,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                     <td className="px-6 py-4 font-bold text-slate-400">{s?.admission_year || "N/A"}</td>
                     <td className="px-6 py-4"><span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full uppercase">{s?.session || "N/A"}</span></td>
                     <td className="px-6 py-4 text-right flex justify-end gap-2 items-center">
-                      {s?.roll_no_locked ? (
+                      {Boolean(s?.roll_no_locked) ? (
                         <button 
                           onClick={() => handleUnlockRollNumber(s?.user_id)} 
                           className="p-2 text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors" 
@@ -862,7 +867,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                       ) : null}
                       <button onClick={() => {
                         setEditStudentModal({ open: true, data: {...s, new_profile_image: null} });
-                        setStudentPreview(s.profile_image ? getMediaUrl(s.profile_image) : null);
+                        setStudentPreview(s?.profile_image ? getMediaUrl(s.profile_image) : null);
                       }} className="p-2 text-slate-400 hover:text-blue-600"><Edit size={18}  /></button>
                       <button onClick={() => {
                         if (!s?.roll_number) {
@@ -871,9 +876,9 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
                         }
                         openResetModal({
                           userId: s?.user_id,
-                          targetName: s?.name,
+                          targetName: s?.name || 'Student',
                           targetRole: 'student',
-                          expectedIdentifier: s?.roll_number
+                          expectedIdentifier: String(s?.roll_number)
                         });
                       }} className="p-2 text-slate-400 hover:text-blue-600" title="Reset Password"><Key size={18}  /></button>
                       <button onClick={() => handleDeleteStudent(s?.user_id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={18}  /></button>
