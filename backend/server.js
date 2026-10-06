@@ -130,6 +130,28 @@ app.get('/', (req, res) => {
   res.send('College ERP API is running...');
 });
 
+// Health check route — confirms server + DB are alive
+app.get('/api/health', async (req, res) => {
+  try {
+    const connection = await db.getConnection();
+    connection.release();
+    res.status(200).json({
+      status: 'ok',
+      server: 'running',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      server: 'running',
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Global error handler - never leaks internal database or stack errors in production
 app.use((err, req, res, next) => {
   console.error("GLOBAL ERROR:", err.stack || err);
