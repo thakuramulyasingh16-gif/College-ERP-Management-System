@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchData, getToken, getMediaUrl } from '../utils/api';
 import { 
   ClipboardCheck, GraduationCap, CreditCard, BookMarked, Bell, Download, Calendar, CheckCircle, 
-  X, AlertCircle, Wallet, CreditCard as CardIcon, Smartphone, Building, ArrowRight, FileText, Pencil, BookOpen
+  X, AlertCircle, Wallet, CreditCard as CardIcon, Smartphone, Building, ArrowRight, FileText, Pencil, BookOpen, Key
 } from 'lucide-react';
 import { Loader, ErrorMessage } from './UIHelpers';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +21,85 @@ const StudentDashboard = ({ activeTab }) => {
   const [studentSubjects, setStudentSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Self-Service Change Password State
+  const [changePasswordModal, setChangePasswordModal] = useState({
+    open: false,
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    oldPasswordError: '',
+    generalError: '',
+    successMsg: '',
+    loading: false
+  });
+
+  const handleChangeMyPassword = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setChangePasswordModal(prev => ({ ...prev, oldPasswordError: '', generalError: '', successMsg: '' }));
+
+    if (!changePasswordModal.oldPassword) {
+      setChangePasswordModal(prev => ({ ...prev, oldPasswordError: 'Current password is required' }));
+      return;
+    }
+    if (!changePasswordModal.newPassword || changePasswordModal.newPassword.length < 8) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New password must be at least 8 characters' }));
+      return;
+    }
+    if (changePasswordModal.newPassword !== changePasswordModal.confirmPassword) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New passwords do not match' }));
+      return;
+    }
+
+    setChangePasswordModal(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await api.post('/change-password', {
+        oldPassword: changePasswordModal.oldPassword,
+        newPassword: changePasswordModal.newPassword
+      });
+
+      const msg = res.data?.message || 'Password changed successfully';
+      setChangePasswordModal(prev => ({
+        ...prev,
+        loading: false,
+        successMsg: msg
+      }));
+
+      setTimeout(() => {
+        closeChangePasswordModal();
+      }, 1200);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to change password';
+      if (msg.toLowerCase().includes('current password is incorrect') || (err.response?.status === 400 && msg.toLowerCase().includes('current password'))) {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          oldPasswordError: 'Current password is incorrect',
+          generalError: ''
+        }));
+      } else {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          generalError: msg,
+          oldPasswordError: ''
+        }));
+      }
+    }
+  };
+
+  const closeChangePasswordModal = () => {
+    setChangePasswordModal({
+      open: false,
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      oldPasswordError: '',
+      generalError: '',
+      successMsg: '',
+      loading: false
+    });
+  };
 
   // Assignment State
   const [assignments, setAssignments] = useState([]);
@@ -309,14 +388,23 @@ const StudentDashboard = ({ activeTab }) => {
             </div>
           </div>
 
-          {/* If roll number is set and locked, display read-only status with notice */}
-          {currentRoll && isLocked && (
-            <div className="bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl md:text-right">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Assigned Roll Number</p>
-              <p className="font-mono font-black text-slate-800 text-lg">{currentRoll}</p>
-              <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Roll number set. To change it, please contact the admin.</p>
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* If roll number is set and locked, display read-only status with notice */}
+            {currentRoll && isLocked && (
+              <div className="bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl md:text-right">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Assigned Roll Number</p>
+                <p className="font-mono font-black text-slate-800 text-lg">{currentRoll}</p>
+                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Roll number set. To change it, please contact the admin.</p>
+              </div>
+            )}
+            <button
+              onClick={() => setChangePasswordModal(prev => ({ ...prev, open: true }))}
+              className="px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 border border-purple-100 transition-all shadow-sm hover:scale-105"
+            >
+              <Key size={15} />
+              <span>Change Password</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -781,6 +869,135 @@ const StudentDashboard = ({ activeTab }) => {
       {activeTab === 'fees' && renderFees()}
       {activeTab === 'notes' && renderNotes()}
       {activeTab === 'complaints' && renderComplaints()}
+
+      {/* Change My Password Modal (Self-Service) */}
+      {changePasswordModal.open && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-slate-800">Change My Password</h3>
+                  <p className="text-slate-400 text-xs font-semibold">Update your account password</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeChangePasswordModal} 
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {changePasswordModal.successMsg ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <CheckCircle size={18} className="text-emerald-500 shrink-0" />
+                <span>{changePasswordModal.successMsg}</span>
+              </div>
+            ) : null}
+
+            {changePasswordModal.generalError ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <AlertCircle size={18} className="text-red-500 shrink-0" />
+                <span>{changePasswordModal.generalError}</span>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleChangeMyPassword} className="space-y-4">
+              {/* Field 1: Current (Old) Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Current (Old) Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter current password"
+                  className={`w-full p-3.5 bg-slate-50 border rounded-2xl text-sm font-bold outline-none transition-all ${
+                    changePasswordModal.oldPasswordError 
+                      ? 'border-red-400 bg-red-50/30 focus:ring-2 focus:ring-red-400/20' 
+                      : 'border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                  }`}
+                  value={changePasswordModal.oldPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    oldPassword: e.target.value,
+                    oldPasswordError: '' 
+                  })}
+                />
+                {changePasswordModal.oldPasswordError && (
+                  <p className="text-red-500 text-xs font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle size={13} />
+                    <span>{changePasswordModal.oldPasswordError}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Field 2: New Password with Strength Hint */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter new password (min. 8 characters)"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.newPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    newPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+                <p className="text-slate-400 text-[11px] font-semibold mt-1">
+                  Password strength hint: Minimum 8 characters.
+                </p>
+              </div>
+
+              {/* Field 3: Confirm New Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Confirm New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Re-enter new password"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.confirmPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    confirmPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={changePasswordModal.loading || !!changePasswordModal.successMsg}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-3.5 rounded-2xl font-black text-sm shadow-lg shadow-purple-600/25 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  {changePasswordModal.loading ? 'Updating...' : 'Change Password'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeChangePasswordModal}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 p-3.5 rounded-2xl font-black text-sm transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

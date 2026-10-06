@@ -1075,7 +1075,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
         </div>
         <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden text-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[400px]">
+            <table className="w-full text-left min-w-[500px]">
               <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
                 <tr><th className="px-6 py-4">ID</th><th className="px-6 py-4">Name</th><th className="px-6 py-4 text-right">Action</th></tr>
               </thead>
@@ -1300,7 +1300,7 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
         </div>
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden text-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[400px]">
+            <table className="w-full text-left min-w-[500px]">
               <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black">
                 <tr><th className="px-6 py-4">ID</th><th className="px-6 py-4">Session</th><th className="px-6 py-4">Duration</th></tr>
               </thead>

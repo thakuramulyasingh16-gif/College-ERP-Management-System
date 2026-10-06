@@ -89,11 +89,60 @@ const rollNumberRateLimiter = createSimpleLimiter({
   message: 'Too many roll number update attempts. Please try again in 15 minutes.'
 });
 
+// Max 3 OTP requests per 15 minutes per identifier+mobile+IP combo
+function createOtpRequestLimiter() {
+  const store = new Map();
+  const windowMs = 15 * 60 * 1000;
+  const maxAttempts = 3;
+
+  function limiter(req, res, next) {
+    const rawId = req.body?.identifier || req.body?.email || '';
+    const rawMobile = req.body?.mobile || '';
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0]).trim() : (req.ip || '127.0.0.1');
+    const key = `${String(rawId).trim().toLowerCase()}::${String(rawMobile).trim()}::${ip}`;
+    const now = Date.now();
+
+    let timestamps = store.get(key) || [];
+    timestamps = timestamps.filter(ts => now - ts < windowMs);
+
+    if (timestamps.length >= maxAttempts) {
+      const oldest = timestamps[0];
+      const retryAfterSeconds = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+      res.set('Retry-After', String(retryAfterSeconds));
+      return res.status(429).json({
+        success: false,
+        message: `Too many OTP requests. Please try again in ${Math.ceil(retryAfterSeconds / 60)} minutes.`,
+        retryAfter: retryAfterSeconds
+      });
+    }
+
+    timestamps.push(now);
+    store.set(key, timestamps);
+    next();
+  }
+
+  limiter.resetAll = () => store.clear();
+  return limiter;
+}
+
+const otpRequestRateLimiter = createOtpRequestLimiter();
+
+// Max 5 OTP verification attempts per 15 minutes per IP/identifier
+const otpVerifyRateLimiter = createSimpleLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 5,
+  name: 'otp-verify',
+  message: 'Too many OTP verification attempts. Please try again in 15 minutes.'
+});
+
 module.exports = {
   complaintRateLimiter,
   submissionRateLimiter,
   passwordResetRateLimiter,
   changePasswordRateLimiter,
-  rollNumberRateLimiter
+  rollNumberRateLimiter,
+  otpRequestRateLimiter,
+  otpVerifyRateLimiter
 };
 

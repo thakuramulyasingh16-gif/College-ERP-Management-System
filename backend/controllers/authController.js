@@ -2,6 +2,24 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { blacklistToken } = require("../middleware/auth");
+const { sendOtpSms } = require("../services/smsService");
+
+// In-memory OTP store: userId -> { userId, otp, expiresAt, attempts, mobile, identifier }
+const otpStore = new Map();
+
+// In-memory single-use reset tokens: resetToken -> { userId, expiresAt }
+const activeResetTokens = new Map();
+
+// Periodic prune of expired OTPs & reset tokens
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of otpStore.entries()) {
+    if (val.expiresAt < now) otpStore.delete(key);
+  }
+  for (const [key, val] of activeResetTokens.entries()) {
+    if (val.expiresAt < now) activeResetTokens.delete(key);
+  }
+}, 5 * 60 * 1000).unref();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_REGEX = /^[0-9]{10}$/;
@@ -264,3 +282,235 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: isDev ? error.message : "Server Error during logout" });
   }
 };
+
+/**
+ * Step 1: Request OTP for Forgot Password flow
+ * Strictly available for Student and Teacher accounts only (NOT Admin).
+ * Enforces 10-digit numeric mobile. Non-enumerating response.
+ */
+exports.requestOtp = async (req, res) => {
+  const rawId = req.body?.identifier || req.body?.email || '';
+  const rawMobile = req.body?.mobile || '';
+
+  const cleanIdentifier = String(rawId).trim().toLowerCase();
+  const cleanMobile = String(rawMobile).trim();
+
+  if (!cleanIdentifier) {
+    return res.status(400).json({ success: false, message: "Email or ID is required" });
+  }
+
+  // Mobile number MUST enforce exactly 10 digits, numeric only
+  if (!MOBILE_REGEX.test(cleanMobile)) {
+    return res.status(400).json({ success: false, message: "Mobile number must be exactly 10 digits" });
+  }
+
+  const genericResponse = {
+    success: true,
+    message: "If these details are correct, an OTP has been sent to your registered mobile number."
+  };
+
+  try {
+    // Exclude 'admin' role explicitly
+    const [users] = await db.execute(`
+      SELECT u.id, u.email, u.mobile, u.role
+      FROM users u
+      LEFT JOIN students st ON st.user_id = u.id
+      LEFT JOIN staff sf ON sf.user_id = u.id
+      WHERE (LOWER(u.email) = ? OR u.mobile = ? OR LOWER(st.roll_no) = ? OR LOWER(sf.teacher_code) = ?)
+        AND u.role IN ('student', 'teacher')
+      LIMIT 1
+    `, [cleanIdentifier, cleanMobile, cleanIdentifier, cleanIdentifier]);
+
+    if (users.length > 0) {
+      const user = users[0];
+      // Verify submitted mobile matches account's registered mobile
+      if (user.mobile && String(user.mobile).trim() === cleanMobile) {
+        // Generate 6-digit numeric OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const ttlMs = 5 * 60 * 1000; // 5 minutes
+
+        otpStore.set(user.id, {
+          userId: user.id,
+          otp,
+          expiresAt: Date.now() + ttlMs,
+          attempts: 0,
+          mobile: cleanMobile,
+          identifier: cleanIdentifier
+        });
+
+        // Send via SMS Service abstraction
+        await sendOtpSms(cleanMobile, otp);
+      }
+    }
+
+    // Always return generic non-enumerating message
+    return res.status(200).json(genericResponse);
+  } catch (error) {
+    console.error("Request OTP Error:", error);
+    // Even on server query errors, do not leak user state
+    return res.status(200).json(genericResponse);
+  }
+};
+
+/**
+ * Step 2: Verify OTP
+ * Max 5 failed attempts locks and deletes the OTP.
+ * On success, issues a 10-minute password reset token.
+ */
+exports.verifyOtp = async (req, res) => {
+  const rawId = req.body?.identifier || req.body?.email || '';
+  const rawOtp = req.body?.otp || '';
+
+  const cleanIdentifier = String(rawId).trim().toLowerCase();
+  const cleanOtp = String(rawOtp).trim();
+
+  if (!cleanIdentifier) {
+    return res.status(400).json({ success: false, message: "Email or ID is required" });
+  }
+
+  if (!cleanOtp || !/^[0-9]{6}$/.test(cleanOtp)) {
+    return res.status(400).json({ success: false, message: "A valid 6-digit OTP is required" });
+  }
+
+  try {
+    const [users] = await db.execute(`
+      SELECT u.id, u.email, u.mobile, u.role
+      FROM users u
+      LEFT JOIN students st ON st.user_id = u.id
+      LEFT JOIN staff sf ON sf.user_id = u.id
+      WHERE (LOWER(u.email) = ? OR u.mobile = ? OR LOWER(st.roll_no) = ? OR LOWER(sf.teacher_code) = ?)
+        AND u.role IN ('student', 'teacher')
+      LIMIT 1
+    `, [cleanIdentifier, cleanIdentifier, cleanIdentifier, cleanIdentifier]);
+
+    if (users.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP. Please request a new one." });
+    }
+
+    const user = users[0];
+    const record = otpStore.get(user.id);
+
+    if (!record) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP. Please request a new one." });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(user.id);
+      return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." });
+    }
+
+    record.attempts += 1;
+    if (record.attempts > 5) {
+      otpStore.delete(user.id);
+      return res.status(429).json({
+        success: false,
+        message: "Too many failed attempts. This OTP has been invalidated. Please request a new OTP."
+      });
+    }
+
+    if (record.otp !== cleanOtp) {
+      const remaining = Math.max(0, 5 - record.attempts);
+      return res.status(400).json({
+        success: false,
+        message: remaining > 0
+          ? `Incorrect OTP. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+          : "Too many failed attempts. This OTP has been invalidated. Please request a new OTP."
+      });
+    }
+
+    // OTP matched! Invalidate it so it is single-use
+    otpStore.delete(user.id);
+
+    // Issue short-lived (10-minute) reset token
+    const jwtSecret = process.env.JWT_SECRET || 'cgc_jwt_secret_key_college_erp_2024';
+    const resetToken = jwt.sign(
+      { userId: user.id, purpose: 'password_reset' },
+      jwtSecret,
+      { expiresIn: '10m' }
+    );
+
+    activeResetTokens.set(resetToken, {
+      userId: user.id,
+      expiresAt: Date.now() + 10 * 60 * 1000
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      resetToken
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({ success: false, message: "Server error verifying OTP" });
+  }
+};
+
+/**
+ * Step 3: Reset Password using single-use reset token
+ * Validates reset token, updates password (bcrypt), invalidates token & sessions.
+ */
+exports.resetForgotPassword = async (req, res) => {
+  const { resetToken, newPassword, confirmPassword } = req.body;
+
+  if (!resetToken || typeof resetToken !== 'string') {
+    return res.status(400).json({ success: false, message: "Password reset token is required" });
+  }
+
+  const tokenRecord = activeResetTokens.get(resetToken);
+  if (!tokenRecord || Date.now() > tokenRecord.expiresAt) {
+    activeResetTokens.delete(resetToken);
+    return res.status(400).json({ success: false, message: "Reset token has expired or is invalid. Please request a new OTP." });
+  }
+
+  const jwtSecret = process.env.JWT_SECRET || 'cgc_jwt_secret_key_college_erp_2024';
+  let decoded;
+  try {
+    decoded = jwt.verify(resetToken, jwtSecret);
+    if (decoded.purpose !== 'password_reset' || decoded.userId !== tokenRecord.userId) {
+      throw new Error("Invalid token payload");
+    }
+  } catch (err) {
+    activeResetTokens.delete(resetToken);
+    return res.status(400).json({ success: false, message: "Invalid or expired reset token." });
+  }
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: "New password must be at least 8 characters long"
+    });
+  }
+
+  if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Passwords do not match"
+    });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password AND invalidate current_session_token to log out all existing sessions
+    await db.execute(
+      "UPDATE users SET password = ?, current_session_token = NULL WHERE id = ?",
+      [hashedPassword, tokenRecord.userId]
+    );
+
+    // Invalidate reset token so it can never be reused
+    activeResetTokens.delete(resetToken);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now log in with your new password."
+    });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    return res.status(500).json({ success: false, message: "Failed to reset password" });
+  }
+};
+
+// Test helpers (only used in automated testing suite)
+exports._getOtpForTesting = (userId) => otpStore.get(userId);
+exports._setOtpForTesting = (userId, data) => otpStore.set(userId, data);
+exports._clearOtpStoreForTesting = () => { otpStore.clear(); activeResetTokens.clear(); };

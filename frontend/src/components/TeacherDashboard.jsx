@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchData, getToken, authFetch, getMediaUrl } from '../utils/api';
 import { 
   Users, BookMarked, CheckCircle2,
-  Calendar, Search, ArrowRight, Check, X, Clock, GraduationCap, Bell, AlertCircle, Plus, Trash2, FileText, List, Pencil, Eye, BookOpen
+  Calendar, Search, ArrowRight, Check, X, Clock, GraduationCap, Bell, AlertCircle, Plus, Trash2, FileText, List, Pencil, Eye, BookOpen, Key, CheckCircle
 } from 'lucide-react';
 import { Loader, ErrorMessage } from './UIHelpers';
 import { generateSessions, UG_COURSES, PG_COURSES } from '../utils/sessionHelper';
@@ -22,6 +22,85 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Self-Service Change Password State
+  const [changePasswordModal, setChangePasswordModal] = useState({
+    open: false,
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    oldPasswordError: '',
+    generalError: '',
+    successMsg: '',
+    loading: false
+  });
+
+  const handleChangeMyPassword = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setChangePasswordModal(prev => ({ ...prev, oldPasswordError: '', generalError: '', successMsg: '' }));
+
+    if (!changePasswordModal.oldPassword) {
+      setChangePasswordModal(prev => ({ ...prev, oldPasswordError: 'Current password is required' }));
+      return;
+    }
+    if (!changePasswordModal.newPassword || changePasswordModal.newPassword.length < 8) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New password must be at least 8 characters' }));
+      return;
+    }
+    if (changePasswordModal.newPassword !== changePasswordModal.confirmPassword) {
+      setChangePasswordModal(prev => ({ ...prev, generalError: 'New passwords do not match' }));
+      return;
+    }
+
+    setChangePasswordModal(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await api.post('/change-password', {
+        oldPassword: changePasswordModal.oldPassword,
+        newPassword: changePasswordModal.newPassword
+      });
+
+      const msg = res.data?.message || 'Password changed successfully';
+      setChangePasswordModal(prev => ({
+        ...prev,
+        loading: false,
+        successMsg: msg
+      }));
+
+      setTimeout(() => {
+        closeChangePasswordModal();
+      }, 1200);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to change password';
+      if (msg.toLowerCase().includes('current password is incorrect') || (err.response?.status === 400 && msg.toLowerCase().includes('current password'))) {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          oldPasswordError: 'Current password is incorrect',
+          generalError: ''
+        }));
+      } else {
+        setChangePasswordModal(prev => ({
+          ...prev,
+          loading: false,
+          generalError: msg,
+          oldPasswordError: ''
+        }));
+      }
+    }
+  };
+
+  const closeChangePasswordModal = () => {
+    setChangePasswordModal({
+      open: false,
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      oldPasswordError: '',
+      generalError: '',
+      successMsg: '',
+      loading: false
+    });
+  };
 
   // Search and Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -776,6 +855,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
           <div className="mt-2 flex wrap gap-2">
             <button onClick={() => setActiveTab('attendance')} className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">Attendance</button>
             <button onClick={() => setActiveTab('assignments')} className="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors">Assignments</button>
+            <button onClick={() => setChangePasswordModal(prev => ({ ...prev, open: true }))} className="text-[10px] font-black uppercase text-purple-600 bg-purple-50 px-3 py-1 rounded-full hover:bg-purple-100 transition-colors flex items-center gap-1.5"><Key size={12} /> Change Password</button>
           </div>
         </div>
       </div>
@@ -799,23 +879,25 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
       <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-            <tr><th className="px-8 py-5">Roll No</th><th className="px-8 py-5">Name</th><th className="px-8 py-5 text-center">Status</th><th className="px-8 py-5 text-right">Toggle</th></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {bulkAttendance?.length > 0 ? bulkAttendance.map(s => (
-              <tr key={s?.student_id} className="hover:bg-slate-50">
-                <td className="px-8 py-5 font-black text-slate-400">#{s?.roll_no}</td>
-                <td className="px-8 py-5 font-bold text-slate-800 uppercase">{s?.name}</td>
-                <td className="px-8 py-5 text-center"><span className={"px-3 py-1 rounded-full text-[10px] font-black uppercase " + (s?.status === 'present' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600')}>{s?.status}</span></td>
-                <td className="px-8 py-5 text-right"><button onClick={() => handleStatusToggle(s?.student_id)} className={"p-2 rounded-xl " + (s?.status === 'present' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-400')}>{s?.status === 'present' ? <Check size={18}  /> : <X size={18}  />}</button></td>
-              </tr>
-            )) : (
-              <tr><td colSpan="4" className="p-10 text-center text-slate-300 font-black uppercase tracking-widest text-sm">No students available</td></tr>
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[550px]">
+            <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+              <tr><th className="px-8 py-5">Roll No</th><th className="px-8 py-5">Name</th><th className="px-8 py-5 text-center">Status</th><th className="px-8 py-5 text-right">Toggle</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {bulkAttendance?.length > 0 ? bulkAttendance.map(s => (
+                <tr key={s?.student_id} className="hover:bg-slate-50">
+                  <td className="px-8 py-5 font-black text-slate-400">#{s?.roll_no}</td>
+                  <td className="px-8 py-5 font-bold text-slate-800 uppercase">{s?.name}</td>
+                  <td className="px-8 py-5 text-center"><span className={"px-3 py-1 rounded-full text-[10px] font-black uppercase " + (s?.status === 'present' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600')}>{s?.status}</span></td>
+                  <td className="px-8 py-5 text-right"><button onClick={() => handleStatusToggle(s?.student_id)} className={"p-2 rounded-xl " + (s?.status === 'present' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-400')}>{s?.status === 'present' ? <Check size={18}  /> : <X size={18}  />}</button></td>
+                </tr>
+              )) : (
+                <tr><td colSpan="4" className="p-10 text-center text-slate-300 font-black uppercase tracking-widest text-sm">No students available</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -846,29 +928,31 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
                 </div>
                 <div className="flex-1 overflow-y-auto p-8">
                     <form id="marksForm" onSubmit={handleMarksSubmit}>
-                        <table className="w-full text-left">
-                            <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                                <tr><th className="pb-4">Roll No</th><th className="pb-4">Student</th><th className="pb-4">Subject</th><th className="pb-4 text-center">Marks</th><th className="pb-4 text-right">Total Marks</th></tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {marksModal.data.map((m, idx) => (
-                                    <tr key={idx}>
-                                        <td className="py-4 font-black text-slate-400">#{m?.roll_no}</td>
-                                        <td className="py-4 font-bold text-slate-800 uppercase">{m?.student_name}</td>
-                                        <td className="py-4">
-                                            {marksModal.type === 'create' ? (
-                                                <select className="p-2 bg-slate-50 rounded-xl text-xs font-bold w-full outline-none" value={m?.subject_id} onChange={e => { const newData = [...marksModal.data]; newData[idx].subject_id = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required>
-                                                    <option value="">Select Subject</option>
-                                                    {marksSubjects.map(s => <option key={s?.id} value={s?.id}>{s?.name}</option>)}
-                                                </select>
-                                            ) : <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">{m?.subject_name}</span>}
-                                        </td>
-                                        <td className="py-4 text-center"><input type="number" className="w-20 p-2 bg-slate-50 rounded-xl text-center font-black text-blue-600" value={marksModal.type === 'create' ? m?.marks : m?.marks_obtained} onChange={e => { const newData = [...marksModal.data]; if (marksModal.type === 'create') newData[idx].marks = e.target.value; else newData[idx].marks_obtained = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required /></td>
-                                        <td className="py-4 text-right"><input type="number" className="w-20 p-2 bg-slate-50 rounded-xl text-center font-black text-slate-600" value={m?.max_marks || 100} onChange={e => { const newData = [...marksModal.data]; newData[idx].max_marks = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required /></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left min-w-[650px]">
+                                <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                                    <tr><th className="pb-4">Roll No</th><th className="pb-4">Student</th><th className="pb-4">Subject</th><th className="pb-4 text-center">Marks</th><th className="pb-4 text-right">Total Marks</th></tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {marksModal.data.map((m, idx) => (
+                                        <tr key={idx}>
+                                            <td className="py-4 font-black text-slate-400">#{m?.roll_no}</td>
+                                            <td className="py-4 font-bold text-slate-800 uppercase">{m?.student_name}</td>
+                                            <td className="py-4">
+                                                {marksModal.type === 'create' ? (
+                                                    <select className="p-2 bg-slate-50 rounded-xl text-xs font-bold w-full outline-none" value={m?.subject_id} onChange={e => { const newData = [...marksModal.data]; newData[idx].subject_id = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required>
+                                                        <option value="">Select Subject</option>
+                                                        {marksSubjects.map(s => <option key={s?.id} value={s?.id}>{s?.name}</option>)}
+                                                    </select>
+                                                ) : <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">{m?.subject_name}</span>}
+                                            </td>
+                                            <td className="py-4 text-center"><input type="number" className="w-20 p-2 bg-slate-50 rounded-xl text-center font-black text-blue-600" value={marksModal.type === 'create' ? m?.marks : m?.marks_obtained} onChange={e => { const newData = [...marksModal.data]; if (marksModal.type === 'create') newData[idx].marks = e.target.value; else newData[idx].marks_obtained = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required /></td>
+                                            <td className="py-4 text-right"><input type="number" className="w-20 p-2 bg-slate-50 rounded-xl text-center font-black text-slate-600" value={m?.max_marks || 100} onChange={e => { const newData = [...marksModal.data]; newData[idx].max_marks = e.target.value; setMarksModal({ ...marksModal, data: newData }); }} required /></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </form>
                 </div>
                 <div className="p-8 border-t border-slate-100 flex gap-3">
@@ -911,7 +995,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
                     <button onClick={() => setSelectedAssignment(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={24}/></button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[750px]">
                         <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
                             <tr>
                                 <th className="px-8 py-5">Student</th>
@@ -1226,7 +1310,8 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
     <div className="animate-in slide-in-from-bottom-4 duration-500">
       {renderHeader("Student Roster")}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
             <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
               <tr><th className="px-8 py-5">Student</th><th className="px-8 py-5">Roll No</th><th className="px-8 py-5">Course</th><th className="px-8 py-5 text-right">Access</th></tr>
             </thead>
@@ -1244,6 +1329,7 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
               ))}
             </tbody>
           </table>
+        </div>
       </div>
     </div>
   );
@@ -1268,20 +1354,22 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
             </div>
             <div className="lg:col-span-8">
                 <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                            <tr><th className="px-8 py-5">Subject</th><th className="px-8 py-5">Course</th><th className="px-8 py-5 text-right">Actions</th></tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {filteredSubjects.map(s => (
-                                <tr key={s.id} className="hover:bg-slate-50 transition-colors group">
-                                    <td className="px-8 py-5"><span className="font-black text-slate-800 text-sm uppercase">{s?.name}</span></td>
-                                    <td className="px-8 py-5"><span className="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">{s.course_name}</span></td>
-                                    <td className="px-8 py-5 text-right"><div className="flex justify-end gap-2"><button onClick={() => { setEditingSubject(s); setShowSubjectEditModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Pencil size={16} /></button><button onClick={() => handleDeleteSubject(s.id)} className="p-2 bg-red-50 text-red-600 rounded-xl"><Trash2 size={16} /></button></div></td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left min-w-[500px]">
+                            <thead className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                                <tr><th className="px-8 py-5">Subject</th><th className="px-8 py-5">Course</th><th className="px-8 py-5 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {filteredSubjects.map(s => (
+                                    <tr key={s.id} className="hover:bg-slate-50 transition-colors group">
+                                        <td className="px-8 py-5"><span className="font-black text-slate-800 text-sm uppercase">{s?.name}</span></td>
+                                        <td className="px-8 py-5"><span className="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">{s.course_name}</span></td>
+                                        <td className="px-8 py-5 text-right"><div className="flex justify-end gap-2"><button onClick={() => { setEditingSubject(s); setShowSubjectEditModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Pencil size={16} /></button><button onClick={() => handleDeleteSubject(s.id)} className="p-2 bg-red-50 text-red-600 rounded-xl"><Trash2 size={16} /></button></div></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1335,6 +1423,135 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
       {activeTab === 'notes' && renderNotes()}
       {activeTab === 'complaints' && renderComplaints()}
       {activeTab === 'students' && renderStudentsList()}
+
+      {/* Change My Password Modal (Self-Service) */}
+      {changePasswordModal.open && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-slate-800">Change My Password</h3>
+                  <p className="text-slate-400 text-xs font-semibold">Update your account password</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeChangePasswordModal} 
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {changePasswordModal.successMsg ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <CheckCircle size={18} className="text-emerald-500 shrink-0" />
+                <span>{changePasswordModal.successMsg}</span>
+              </div>
+            ) : null}
+
+            {changePasswordModal.generalError ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2 mb-4 animate-in fade-in">
+                <AlertCircle size={18} className="text-red-500 shrink-0" />
+                <span>{changePasswordModal.generalError}</span>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleChangeMyPassword} className="space-y-4">
+              {/* Field 1: Current (Old) Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Current (Old) Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter current password"
+                  className={`w-full p-3.5 bg-slate-50 border rounded-2xl text-sm font-bold outline-none transition-all ${
+                    changePasswordModal.oldPasswordError 
+                      ? 'border-red-400 bg-red-50/30 focus:ring-2 focus:ring-red-400/20' 
+                      : 'border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                  }`}
+                  value={changePasswordModal.oldPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    oldPassword: e.target.value,
+                    oldPasswordError: '' 
+                  })}
+                />
+                {changePasswordModal.oldPasswordError && (
+                  <p className="text-red-500 text-xs font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle size={13} />
+                    <span>{changePasswordModal.oldPasswordError}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Field 2: New Password with Strength Hint */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter new password (min. 8 characters)"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.newPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    newPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+                <p className="text-slate-400 text-[11px] font-semibold mt-1">
+                  Password strength hint: Minimum 8 characters.
+                </p>
+              </div>
+
+              {/* Field 3: Confirm New Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">
+                  Confirm New Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Re-enter new password"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  value={changePasswordModal.confirmPassword}
+                  onChange={(e) => setChangePasswordModal({ 
+                    ...changePasswordModal, 
+                    confirmPassword: e.target.value,
+                    generalError: '' 
+                  })}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={changePasswordModal.loading || !!changePasswordModal.successMsg}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-3.5 rounded-2xl font-black text-sm shadow-lg shadow-purple-600/25 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  {changePasswordModal.loading ? 'Updating...' : 'Change Password'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeChangePasswordModal}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 p-3.5 rounded-2xl font-black text-sm transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

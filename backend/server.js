@@ -80,6 +80,7 @@ const allowedOrigins = [
   "https://college-erp-management-system-1.onrender.com",
   "https://college-erp-management-system-a9xk.onrender.com",
   "http://localhost:5173",
+  "http://localhost:5500",
   "http://localhost:3000"
 ];
 

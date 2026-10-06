@@ -56,8 +56,15 @@ router.post("/students/:id/unlock-roll-number", auth(["admin"]), erpController.u
 router.post("/update-profile-image", auth(["admin", "teacher", "student"]), upload.single('profile_image'), validateUploadedFile, erpController.updateProfileImage);
 
 // Auth / Password Management
-router.post("/change-password", auth(), changePasswordRateLimiter, erpController.changeOwnPassword);
+router.post("/change-password", auth(["admin", "teacher", "student"]), changePasswordRateLimiter, erpController.changeOwnPassword);
 router.post("/reset-password", auth(["admin"]), passwordResetRateLimiter, erpController.resetPassword);
+
+// Forgot Password Flow aliases (also available at /api/auth/forgot-password/...)
+const authController = require("../controllers/authController");
+const { otpRequestRateLimiter, otpVerifyRateLimiter } = require("../middleware/rateLimiters");
+router.post("/forgot-password/request", otpRequestRateLimiter, authController.requestOtp);
+router.post("/forgot-password/verify", otpVerifyRateLimiter, authController.verifyOtp);
+router.post("/forgot-password/reset", authController.resetForgotPassword);
 
 // Fees
 router.get("/fee-structures", auth(["admin", "student"]), erpController.getFeeStructures);
