@@ -133,7 +133,7 @@ const Login = () => {
     const cleanMobile = forgotModal.mobile.trim();
 
     if (!cleanId) {
-      setForgotModal(prev => ({ ...prev, error: 'Please enter your Email or ID' }));
+      setForgotModal(prev => ({ ...prev, error: 'Please enter your Email, ID, or Roll Number' }));
       return;
     }
 
@@ -166,12 +166,21 @@ const Login = () => {
         return;
       }
 
-      // Backend returns 200 with generic non-enumerable message
+      if (!res.ok) {
+        setForgotModal(prev => ({
+          ...prev,
+          loading: false,
+          error: data.message || 'Not found in database'
+        }));
+        return;
+      }
+
+      // Success: advance to Step 2
       setForgotModal(prev => ({
         ...prev,
         loading: false,
         step: 2,
-        otpSuccessMsg: data.message || 'If these details are correct, an OTP has been sent to your registered mobile number.',
+        otpSuccessMsg: data.message || 'OTP sent successfully to your registered mobile number.',
         error: ''
       }));
     } catch (err) {
@@ -765,12 +774,12 @@ const Login = () => {
               <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Email ID or Identifier <span style={{ color: '#EF4444' }}>*</span>
+                    Email, ID, or Roll Number (if student) <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. roll number, teacher ID, or email"
+                    placeholder="e.g. roll number or email"
                     value={forgotModal.identifier}
                     onChange={(e) => setForgotModal({ ...forgotModal, identifier: e.target.value, error: '' })}
                     style={{

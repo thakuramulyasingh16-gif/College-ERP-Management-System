@@ -286,7 +286,9 @@ exports.logout = async (req, res) => {
 /**
  * Step 1: Request OTP for Forgot Password flow
  * Strictly available for Student and Teacher accounts only (NOT Admin).
- * Enforces 10-digit numeric mobile. Non-enumerating response.
+ * Allows lookup by users.email, OR for student accounts specifically, students.roll_no.
+ * Whichever matches, also requires the submitted mobile to match registered users.mobile.
+ * Returns explicit "Not found in database" on mismatch.
  */
 exports.requestOtp = async (req, res) => {
   const rawId = req.body?.identifier || req.body?.email || '';
@@ -296,7 +298,7 @@ exports.requestOtp = async (req, res) => {
   const cleanMobile = String(rawMobile).trim();
 
   if (!cleanIdentifier) {
-    return res.status(400).json({ success: false, message: "Email or ID is required" });
+    return res.status(400).json({ success: false, message: "Email, ID, or Roll Number is required" });
   }
 
   // Mobile number MUST enforce exactly 10 digits, numeric only
@@ -304,51 +306,58 @@ exports.requestOtp = async (req, res) => {
     return res.status(400).json({ success: false, message: "Mobile number must be exactly 10 digits" });
   }
 
-  const genericResponse = {
-    success: true,
-    message: "If these details are correct, an OTP has been sent to your registered mobile number."
-  };
-
   try {
-    // Exclude 'admin' role explicitly
+    // Look up user:
+    // (a) users.email matches (student or teacher)
+    // (b) for student accounts specifically, students.roll_no matches
+    // Admin accounts are excluded from OTP flow (returns Not found in database)
     const [users] = await db.execute(`
-      SELECT u.id, u.email, u.mobile, u.role
+      SELECT u.id, u.email, u.mobile, u.role, st.roll_no
       FROM users u
       LEFT JOIN students st ON st.user_id = u.id
-      LEFT JOIN staff sf ON sf.user_id = u.id
-      WHERE (LOWER(u.email) = ? OR u.mobile = ? OR LOWER(st.roll_no) = ? OR LOWER(sf.teacher_code) = ?)
+      WHERE (
+          LOWER(u.email) = ? 
+          OR (u.role = 'student' AND st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+        )
         AND u.role IN ('student', 'teacher')
       LIMIT 1
-    `, [cleanIdentifier, cleanMobile, cleanIdentifier, cleanIdentifier]);
+    `, [cleanIdentifier, cleanIdentifier]);
 
-    if (users.length > 0) {
-      const user = users[0];
-      // Verify submitted mobile matches account's registered mobile
-      if (user.mobile && String(user.mobile).trim() === cleanMobile) {
-        // Generate 6-digit numeric OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const ttlMs = 5 * 60 * 1000; // 5 minutes
-
-        otpStore.set(user.id, {
-          userId: user.id,
-          otp,
-          expiresAt: Date.now() + ttlMs,
-          attempts: 0,
-          mobile: cleanMobile,
-          identifier: cleanIdentifier
-        });
-
-        // Send via SMS Service abstraction
-        await sendOtpSms(cleanMobile, otp);
-      }
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: "Not found in database" });
     }
 
-    // Always return generic non-enumerating message
-    return res.status(200).json(genericResponse);
+    const user = users[0];
+
+    // Whichever matched, then ALSO require the submitted mobile number to match that SAME user's registered users.mobile exactly
+    if (!user.mobile || String(user.mobile).trim() !== cleanMobile) {
+      return res.status(404).json({ success: false, message: "Not found in database" });
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const ttlMs = 5 * 60 * 1000; // 5 minutes
+
+    otpStore.set(user.id, {
+      userId: user.id,
+      otp,
+      expiresAt: Date.now() + ttlMs,
+      attempts: 0,
+      mobile: cleanMobile,
+      identifier: cleanIdentifier
+    });
+
+    // Send via SMS Service abstraction
+    await sendOtpSms(cleanMobile, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully to your registered mobile number",
+      expiresIn: 300
+    });
   } catch (error) {
     console.error("Request OTP Error:", error);
-    // Even on server query errors, do not leak user state
-    return res.status(200).json(genericResponse);
+    return res.status(500).json({ success: false, message: "Server error generating OTP" });
   }
 };
 
@@ -365,7 +374,7 @@ exports.verifyOtp = async (req, res) => {
   const cleanOtp = String(rawOtp).trim();
 
   if (!cleanIdentifier) {
-    return res.status(400).json({ success: false, message: "Email or ID is required" });
+    return res.status(400).json({ success: false, message: "Email, ID, or Roll Number is required" });
   }
 
   if (!cleanOtp || !/^[0-9]{6}$/.test(cleanOtp)) {
@@ -374,14 +383,16 @@ exports.verifyOtp = async (req, res) => {
 
   try {
     const [users] = await db.execute(`
-      SELECT u.id, u.email, u.mobile, u.role
+      SELECT u.id, u.email, u.mobile, u.role, st.roll_no
       FROM users u
       LEFT JOIN students st ON st.user_id = u.id
-      LEFT JOIN staff sf ON sf.user_id = u.id
-      WHERE (LOWER(u.email) = ? OR u.mobile = ? OR LOWER(st.roll_no) = ? OR LOWER(sf.teacher_code) = ?)
+      WHERE (
+          LOWER(u.email) = ? 
+          OR (u.role = 'student' AND st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+        )
         AND u.role IN ('student', 'teacher')
       LIMIT 1
-    `, [cleanIdentifier, cleanIdentifier, cleanIdentifier, cleanIdentifier]);
+    `, [cleanIdentifier, cleanIdentifier]);
 
     if (users.length === 0) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP. Please request a new one." });

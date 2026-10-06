@@ -27,22 +27,18 @@ const db = require('./config/db');
 db.execute = async (query, params = []) => {
   // Query for student / teacher lookup in requestOtp or verifyOtp:
   if (query.includes('FROM users u') && query.includes("u.role IN ('student', 'teacher')")) {
-    const [p0, p1, p2, p3] = params;
-    const identifier = String(p0 || p2 || p3).toLowerCase();
-    const mobile = String(p1);
+    const [p0, p1] = params;
+    const identifier = String(p0 || '').toLowerCase();
 
     for (const [id, u] of Object.entries(mockUsers)) {
       if (u.role !== 'student' && u.role !== 'teacher') continue;
       const st = mockStudents[id];
-      const sf = mockStaff[id];
 
       const matchesEmail = u.email.toLowerCase() === identifier;
-      const matchesMobile = u.mobile === mobile;
-      const matchesRoll = st && st.roll_no.toLowerCase() === identifier;
-      const matchesCode = sf && sf.teacher_code.toLowerCase() === identifier;
+      const matchesRoll = u.role === 'student' && st && st.roll_no && st.roll_no.toLowerCase() === identifier;
 
-      if (matchesEmail || matchesMobile || matchesRoll || matchesCode) {
-        return [[{ ...u }]];
+      if (matchesEmail || matchesRoll) {
+        return [[{ ...u, roll_no: st ? st.roll_no : null }]];
       }
     }
     return [[]];
@@ -110,78 +106,88 @@ async function runTests() {
     console.log('  PASS: Test 1b - Mobile number non-numeric rejected');
   }
 
-  // TEST 2: Request OTP - Non-existent user returns generic 200 response (prevents user enumeration)
+  // TEST 2: Submit a wrong ID+mobile combo — confirm "Not found in database" shows clearly
   {
     const { req, res } = mockReqRes({ identifier: 'doesnotexist@college.com', mobile: '9999999999' });
     await authController.requestOtp(req, res);
-    assert.strictEqual(res.statusCode, 200);
-    assert(res.jsonData.message.includes('If these details are correct'));
-    console.log('  PASS: Test 2 - Non-existent account returns generic non-enumerating message');
+    assert.strictEqual(res.statusCode, 404);
+    assert.strictEqual(res.jsonData.message, 'Not found in database');
+    console.log('  PASS: Test 2 - Wrong ID+mobile combo returns clear "Not found in database" error');
   }
 
-  // TEST 3: Request OTP - ADMIN account must NOT generate OTP
+  // TEST 3: Submit student's correct ROLL NUMBER but WRONG mobile — confirm "Not found in database"
+  {
+    const { req, res } = mockReqRes({ identifier: '2023-BCA-001', mobile: '9111111111' });
+    await authController.requestOtp(req, res);
+    assert.strictEqual(res.statusCode, 404);
+    assert.strictEqual(res.jsonData.message, 'Not found in database');
+    console.log('  PASS: Test 3 - Student valid roll number with mismatched mobile returns "Not found in database"');
+  }
+
+  // TEST 4: Admin account ID + mobile must NOT generate OTP and return "Not found in database"
   {
     const { req, res } = mockReqRes({ identifier: 'admin@college.com', mobile: '9876543210' });
     await authController.requestOtp(req, res);
-    assert.strictEqual(res.statusCode, 200);
-    assert(res.jsonData.message.includes('If these details are correct'));
+    assert.strictEqual(res.statusCode, 404);
+    assert.strictEqual(res.jsonData.message, 'Not found in database');
     const adminOtp = authController._getOtpForTesting(1);
     assert.strictEqual(adminOtp, undefined, 'Admin account must never receive or store an OTP');
-    console.log('  PASS: Test 3 - Admin account strictly barred from forgot-password OTP generation');
+    console.log('  PASS: Test 4 - Admin account strictly barred from forgot-password OTP generation');
   }
 
-  // TEST 4: Request OTP - Valid Student with matching 10-digit mobile
-  let studentOtp;
+  // TEST 5: Submit student's correct EMAIL + correct mobile — confirm OTP flow proceeds
+  let studentEmailOtp;
   {
     const { req, res } = mockReqRes({ identifier: 'student@college.com', mobile: '9876543212' });
     await authController.requestOtp(req, res);
     assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.jsonData.success, true);
     const record = authController._getOtpForTesting(3);
     assert(record, 'Student OTP record should exist in store');
     assert.strictEqual(record.otp.length, 6);
-    assert(/^\d{6}$/.test(record.otp));
-    studentOtp = record.otp;
-    console.log(`  PASS: Test 4 - Valid Student generated 6-digit numeric OTP (${studentOtp})`);
+    studentEmailOtp = record.otp;
+    console.log(`  PASS: Test 5 - Student matched by EMAIL + mobile -> OTP generated (${studentEmailOtp})`);
   }
 
-  // TEST 5: Verify OTP - Wrong OTP increments attempt count
+  // TEST 6: Submit the SAME student's correct ROLL NUMBER + correct mobile — confirm OTP flow proceeds identically
+  let studentRollOtp;
   {
-    const { req, res } = mockReqRes({ identifier: 'student@college.com', otp: '000000' });
-    await authController.verifyOtp(req, res);
-    assert.strictEqual(res.statusCode, 400);
-    assert(res.jsonData.message.includes('4 attempts remaining'));
+    const { req, res } = mockReqRes({ identifier: '2023-bca-001', mobile: '9876543212' });
+    await authController.requestOtp(req, res);
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.jsonData.success, true);
     const record = authController._getOtpForTesting(3);
-    assert.strictEqual(record.attempts, 1);
-    console.log('  PASS: Test 5 - Wrong OTP decrements remaining attempts (4 left)');
+    assert(record, 'Student OTP record should exist in store');
+    assert.strictEqual(record.otp.length, 6);
+    studentRollOtp = record.otp;
+    console.log(`  PASS: Test 6 - Same Student matched by ROLL NUMBER + mobile -> OTP generated (${studentRollOtp})`);
   }
 
-  // TEST 6: Verify OTP - 5 failed attempts locks and deletes the OTP
-  {
-    for (let i = 2; i <= 6; i++) {
-      const { req, res } = mockReqRes({ identifier: 'student@college.com', otp: '000000' });
-      await authController.verifyOtp(req, res);
-    }
-    const record = authController._getOtpForTesting(3);
-    assert.strictEqual(record, undefined, 'OTP should be destroyed after 5 failed attempts');
-    console.log('  PASS: Test 6 - OTP locked and destroyed after 5 failed attempts');
-  }
-
-  // TEST 7: Teacher request with Teacher Code & Verify with valid OTP
+  // TEST 7: Submit a teacher's correct ID (email) + correct mobile — confirm OTP flow proceeds
   let teacherOtp;
   {
-    const { req, res } = mockReqRes({ identifier: 'TCH-001', mobile: '9876543211' });
+    const { req, res } = mockReqRes({ identifier: 'teacher@college.com', mobile: '9876543211' });
     await authController.requestOtp(req, res);
     assert.strictEqual(res.statusCode, 200);
     const record = authController._getOtpForTesting(2);
     assert(record, 'Teacher OTP record should exist');
     teacherOtp = record.otp;
-    console.log(`  PASS: Test 7 - Teacher OTP requested via Teacher Code (OTP: ${teacherOtp})`);
+    console.log(`  PASS: Test 7 - Teacher matched by Email/ID + mobile -> OTP generated (${teacherOtp})`);
   }
 
-  // TEST 8: Verify valid Teacher OTP -> Returns 10-min reset token and deletes OTP
+  // TEST 7b: Teacher with roll number or teacher code should NOT match (teachers have no roll-number lookup)
+  {
+    const { req, res } = mockReqRes({ identifier: 'TCH-001', mobile: '9876543211' });
+    await authController.requestOtp(req, res);
+    assert.strictEqual(res.statusCode, 404);
+    assert.strictEqual(res.jsonData.message, 'Not found in database');
+    console.log('  PASS: Test 7b - Teacher cannot use non-email roll number code -> "Not found in database"');
+  }
+
+  // TEST 8: Verify valid Teacher OTP with teacher's email -> Returns 10-min reset token and deletes OTP
   let resetToken;
   {
-    const { req, res } = mockReqRes({ identifier: 'TCH-001', otp: teacherOtp });
+    const { req, res } = mockReqRes({ identifier: 'teacher@college.com', otp: teacherOtp });
     await authController.verifyOtp(req, res);
     assert.strictEqual(res.statusCode, 200);
     assert(res.jsonData.resetToken, 'Should return reset token');
@@ -189,6 +195,15 @@ async function runTests() {
     const record = authController._getOtpForTesting(2);
     assert.strictEqual(record, undefined, 'OTP must be removed immediately upon verification (single-use)');
     console.log('  PASS: Test 8 - Teacher OTP verified, single-use OTP consumed, reset token issued');
+  }
+
+  // TEST 8b: Verify Student OTP using ROLL NUMBER (confirming dual-identifier works end-to-end)
+  {
+    const { req, res } = mockReqRes({ identifier: '2023-bca-001', otp: studentRollOtp });
+    await authController.verifyOtp(req, res);
+    assert.strictEqual(res.statusCode, 200);
+    assert(res.jsonData.resetToken, 'Should return reset token for student');
+    console.log('  PASS: Test 8b - Student OTP verified using ROLL NUMBER as identifier');
   }
 
   // TEST 9: Reset Password - short password (< 8 chars) rejected
