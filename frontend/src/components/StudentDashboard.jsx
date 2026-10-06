@@ -365,11 +365,15 @@ const StudentDashboard = ({ activeTab }) => {
       <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20 overflow-hidden">
-              {studentProfile?.profile_image ? (
-                <img src={getMediaUrl(studentProfile.profile_image)} className="w-full h-full object-cover" alt="Profile" />
-              ) : (
-                studentProfile?.name?.charAt(0) || 'S'
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20 overflow-hidden relative">
+              <span className="select-none">{studentProfile?.name?.charAt(0) || 'S'}</span>
+              {studentProfile?.profile_image && (
+                <img 
+                  src={getMediaUrl(studentProfile.profile_image)} 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                  alt="Profile" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
               )}
             </div>
             <div>

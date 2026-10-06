@@ -2,6 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
+const { deleteMediaFile, getUploadedFileUrl } = require("../services/cloudinaryService");
 
 // --- UTILS ---
 const safeError = (res, error, defaultMsg = "Something went wrong, please try again", status = 500) => {
@@ -255,7 +256,7 @@ exports.getStaff = async (req, res) => {
 
 exports.createTeacher = async (req, res) => {
   const { name, email, mobile, password, department_id, designation, profession, teacher_code } = req.body;
-  const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
+  const profile_image = getUploadedFileUrl(req.file, 'profile');
 
   if (!teacher_code || typeof teacher_code !== 'string' || !teacher_code.trim()) {
     return res.status(400).json({ success: false, message: "Teacher ID is required" });
@@ -293,7 +294,7 @@ exports.createTeacher = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   const { id } = req.params;
   const { name, email, mobile, department_id, designation, profession, teacher_code } = req.body;
-  const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
+  const profile_image = getUploadedFileUrl(req.file, 'profile');
   
   try {
     if (mobile && mobile.length !== 10) return res.status(400).json({ success: false, message: "Mobile must be 10 digits" });
@@ -301,8 +302,7 @@ exports.updateTeacher = async (req, res) => {
     if (profile_image) {
       const [oldUser] = await db.execute("SELECT profile_image FROM users WHERE id = ?", [id]);
       if (oldUser.length > 0 && oldUser[0].profile_image) {
-        const oldPath = path.join(__dirname, '..', oldUser[0].profile_image);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        await deleteMediaFile(oldUser[0].profile_image, 'image');
       }
       await db.execute("UPDATE users SET name = ?, email = ?, mobile = ?, profile_image = ? WHERE id = ?", [name, email, mobile, profile_image, id]);
     } else {
@@ -343,8 +343,7 @@ exports.deleteTeacher = async (req, res) => {
   try {
     const [user] = await db.execute("SELECT profile_image FROM users WHERE id = ?", [id]);
     if (user.length > 0 && user[0].profile_image) {
-      const oldPath = path.join(__dirname, '..', user[0].profile_image);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      await deleteMediaFile(user[0].profile_image, 'image');
     }
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Teacher deleted" });
@@ -402,7 +401,7 @@ exports.getStudents = async (req, res) => {
 
 exports.createStudent = async (req, res) => {
   const { name, email, mobile, password, course_id, admission_year, roll_no } = req.body;
-  const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
+  const profile_image = getUploadedFileUrl(req.file, 'profile');
   try {
     const [courseRows] = await db.execute("SELECT name FROM courses WHERE id = ?", [course_id]);
     if (courseRows.length === 0) return res.status(400).json({ success: false, message: "Invalid course ID" });
@@ -453,7 +452,7 @@ exports.createStudent = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   const { id } = req.params;
   const { name, email, mobile, course_id, admission_year, roll_no } = req.body;
-  const profile_image = req.file ? `/uploads/profile/${req.file.filename}` : null;
+  const profile_image = getUploadedFileUrl(req.file, 'profile');
 
   try {
     if (mobile && mobile.length !== 10) return res.status(400).json({ success: false, message: "Mobile must be 10 digits" });
@@ -475,8 +474,7 @@ exports.updateStudent = async (req, res) => {
     if (profile_image) {
       const [oldUser] = await db.execute("SELECT profile_image FROM users WHERE id = ?", [id]);
       if (oldUser.length > 0 && oldUser[0].profile_image) {
-        const oldPath = path.join(__dirname, '..', oldUser[0].profile_image);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        await deleteMediaFile(oldUser[0].profile_image, 'image');
       }
       await db.execute("UPDATE users SET name = ?, email = ?, mobile = ?, profile_image = ? WHERE id = ?", [name, email, mobile, profile_image, id]);
     } else {
@@ -496,8 +494,7 @@ exports.deleteStudent = async (req, res) => {
   try {
     const [user] = await db.execute("SELECT profile_image FROM users WHERE id = ?", [id]);
     if (user.length > 0 && user[0].profile_image) {
-      const oldPath = path.join(__dirname, '..', user[0].profile_image);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      await deleteMediaFile(user[0].profile_image, 'image');
     }
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
     res.status(200).json({ success: true, message: "Student deleted" });
@@ -956,7 +953,7 @@ exports.getMarks = async (req, res) => {
 };
 exports.uploadNote = async (req, res) => {
   const { title, url, subject_id, course_id, session } = req.body;
-  const file_url = req.file ? `/uploads/materials/${req.file.filename}` : null;
+  const file_url = getUploadedFileUrl(req.file, 'materials');
   
   if (!title || (!file_url && !url) || !course_id || !session) {
     return res.status(400).json({ success: false, message: "Missing required fields: title, material, course, and session are required." });
@@ -980,7 +977,7 @@ exports.uploadNote = async (req, res) => {
 exports.updateNote = async (req, res) => {
     const { id } = req.params;
     const { title, url, subject_id, course_id, session } = req.body;
-    const file_url = req.file ? `/uploads/materials/${req.file.filename}` : null;
+    const file_url = getUploadedFileUrl(req.file, 'materials');
 
     try {
         const [oldNote] = await db.execute("SELECT file_url, uploaded_by FROM notes WHERE id = ?", [id]);
@@ -1001,9 +998,7 @@ exports.updateNote = async (req, res) => {
             
             // Delete old file if exists
             if (oldNote[0].file_url) {
-                const relativePath = oldNote[0].file_url.startsWith('/') ? oldNote[0].file_url.substring(1) : oldNote[0].file_url;
-                const filePath = path.join(__dirname, '..', relativePath);
-                try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (err) { console.error("File delete error:", err); }
+                await deleteMediaFile(oldNote[0].file_url, 'raw');
             }
         } else if (url) {
             query += ", url = ?, file_url = NULL";
@@ -1011,9 +1006,7 @@ exports.updateNote = async (req, res) => {
 
             // Delete old file if switching to URL
             if (oldNote[0].file_url) {
-                const relativePath = oldNote[0].file_url.startsWith('/') ? oldNote[0].file_url.substring(1) : oldNote[0].file_url;
-                const filePath = path.join(__dirname, '..', relativePath);
-                try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (err) { console.error("File delete error:", err); }
+                await deleteMediaFile(oldNote[0].file_url, 'raw');
             }
         }
 
@@ -1042,14 +1035,7 @@ exports.deleteNote = async (req, res) => {
         }
 
         if (note[0].file_url) {
-            // Remove leading slash if exists to join correctly
-            const relativePath = note[0].file_url.startsWith('/') ? note[0].file_url.substring(1) : note[0].file_url;
-            const filePath = path.join(__dirname, '..', relativePath);
-            try {
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-            } catch (fsErr) {
-                console.error("File deletion error:", fsErr);
-            }
+            await deleteMediaFile(note[0].file_url, 'raw');
         }
         
         const [result] = await db.execute("DELETE FROM notes WHERE id = ?", [id]);
@@ -1263,12 +1249,11 @@ exports.deleteComplaint = async (req, res) => {
 
 exports.updateProfileImage = async (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: "No image uploaded" });
-  const profile_image = `/uploads/profile/${req.file.filename}`;
+  const profile_image = getUploadedFileUrl(req.file, 'profile');
   try {
     const [user] = await db.execute("SELECT profile_image FROM users WHERE id = ?", [req.user.id]);
     if (user.length > 0 && user[0].profile_image) {
-      const oldPath = path.join(__dirname, '..', user[0].profile_image);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      await deleteMediaFile(user[0].profile_image, 'image');
     }
     await db.execute("UPDATE users SET profile_image = ? WHERE id = ?", [profile_image, req.user.id]);
     res.status(200).json({ success: true, message: "Profile image updated", profile_image });

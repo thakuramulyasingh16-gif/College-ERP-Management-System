@@ -169,7 +169,7 @@ const Dashboard = () => {
                 onChange={async (e) => {
                   const file = e.target?.files?.[0];
                   if (!file) return;
-                  if (file?.size > 2 * 1024 * 1024) return alert("File too large (>2MB)");
+                  if (file?.size > 5 * 1024 * 1024) return alert("File too large (>5MB)");
                   const formData = new FormData();
                   formData.append('profile_image', file);
                   try {
@@ -189,9 +189,11 @@ const Dashboard = () => {
                 <img
                   src={getMediaUrl(user?.profile_image)}
                   alt="Profile"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
-              ) : (
+              ) : null}
+              {(!user?.profile_image) && (
                 <GraduationCap size={20} style={{ color: 'var(--clay-primary)' }} />
               )}
             </label>

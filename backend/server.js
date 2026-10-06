@@ -69,6 +69,14 @@ db.getConnection()
       console.error("Auto-migration students.roll_no_locked error:", err.message);
     }
 
+    // 5. Ensure users.profile_image and notes.file_url can store long Cloudinary URLs
+    try {
+      await connection.query("ALTER TABLE users MODIFY COLUMN profile_image VARCHAR(500) DEFAULT NULL");
+    } catch (_) {}
+    try {
+      await connection.query("ALTER TABLE notes MODIFY COLUMN file_url VARCHAR(500) DEFAULT NULL");
+    } catch (_) {}
+
     connection.release();
   })
   .catch(err => {

@@ -2,44 +2,74 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const FileType = require('file-type');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { cloudinary, isCloudinaryConfigured } = require('../services/cloudinaryService');
 
 const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const ALLOWED_DOC_EXTENSIONS = ['.pdf'];
 const ALLOWED_DOC_MIMES = ['application/pdf'];
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    let dir = path.join(__dirname, '../uploads/');
-    if (file.fieldname === 'profile_image') {
-      dir = path.join(__dirname, '../uploads/profile/');
-    } else if (file.fieldname === 'study_material') {
-      dir = path.join(__dirname, '../uploads/materials/');
-    }
-    
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    // Sanitize extension - extract only alphanumeric characters
-    const rawExt = path.extname(file.originalname).toLowerCase();
-    let safeExt = '';
-    
-    if (file.fieldname === 'profile_image') {
-      safeExt = ALLOWED_IMAGE_EXTENSIONS.includes(rawExt) ? rawExt : '.jpg';
-    } else if (file.fieldname === 'study_material') {
-      safeExt = ALLOWED_DOC_EXTENSIONS.includes(rawExt) ? rawExt : '.pdf';
-    } else {
-      safeExt = path.extname(file.originalname).replace(/[^a-zA-Z0-9.]/g, '');
-    }
+// Create storage engine: CloudinaryStorage when credentials exist, diskStorage fallback for local tests
+let storage;
 
-    const safeFieldname = file.fieldname.replace(/[^a-zA-Z0-9_]/g, '');
-    cb(null, `${safeFieldname}-${uniqueSuffix}${safeExt}`);
-  }
-});
+if (isCloudinaryConfigured()) {
+  storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+      if (file.fieldname === 'profile_image') {
+        return {
+          folder: 'college-erp/profiles',
+          allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+          transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto' }]
+        };
+      } else if (file.fieldname === 'study_material') {
+        return {
+          folder: 'college-erp/materials',
+          resource_type: 'raw',
+          allowed_formats: ['pdf'],
+          format: 'pdf'
+        };
+      }
+      return {
+        folder: 'college-erp/others'
+      };
+    }
+  });
+} else {
+  // Local diskStorage fallback (for offline tests / local dev without Cloudinary keys)
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      let dir = path.join(__dirname, '../uploads/');
+      if (file.fieldname === 'profile_image') {
+        dir = path.join(__dirname, '../uploads/profile/');
+      } else if (file.fieldname === 'study_material') {
+        dir = path.join(__dirname, '../uploads/materials/');
+      }
+      
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const rawExt = path.extname(file.originalname).toLowerCase();
+      let safeExt = '';
+      
+      if (file.fieldname === 'profile_image') {
+        safeExt = ALLOWED_IMAGE_EXTENSIONS.includes(rawExt) ? rawExt : '.jpg';
+      } else if (file.fieldname === 'study_material') {
+        safeExt = ALLOWED_DOC_EXTENSIONS.includes(rawExt) ? rawExt : '.pdf';
+      } else {
+        safeExt = path.extname(file.originalname).replace(/[^a-zA-Z0-9.]/g, '');
+      }
+
+      const safeFieldname = file.fieldname.replace(/[^a-zA-Z0-9_]/g, '');
+      cb(null, `${safeFieldname}-${uniqueSuffix}${safeExt}`);
+    }
+  });
+}
 
 const fileFilter = (req, file, cb) => {
   if (file.fieldname === 'profile_image') {
@@ -69,13 +99,23 @@ const upload = multer({
 
 /**
  * Post-upload middleware to verify actual magic bytes / content signature
- * Rejects file if client spoofed Content-Type header.
+ * Handles both remote Cloudinary uploads and local disk fallback.
  */
 const validateUploadedFile = async (req, res, next) => {
   if (!req.file) return next();
 
+  // If uploaded to Cloudinary, req.file.path is a full HTTPS URL
+  if (req.file.path && (req.file.path.startsWith('http://') || req.file.path.startsWith('https://'))) {
+    return next();
+  }
+
+  // Local disk fallback validation
   try {
     const filePath = req.file.path;
+    if (!filePath || !fs.existsSync(filePath)) {
+      return next();
+    }
+
     const fileType = await FileType.fromFile(filePath);
 
     let isValid = false;
@@ -94,7 +134,6 @@ const validateUploadedFile = async (req, res, next) => {
     }
 
     if (!isValid) {
-      // Remove spoofed or unverified file from disk immediately
       try {
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
