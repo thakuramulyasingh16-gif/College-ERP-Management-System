@@ -861,7 +861,7 @@ const Login = () => {
                       opacity: forgotModal.loading ? 0.7 : 1
                     }}
                   >
-                    {forgotModal.loading ? 'Sending OTP...' : 'Send OTP'}
+                    {forgotModal.loading ? 'Verifying...' : 'Verify Email'}
                   </button>
                   <button
                     type="button"

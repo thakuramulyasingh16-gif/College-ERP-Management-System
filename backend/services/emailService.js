@@ -2,6 +2,7 @@
  * Email Service (Nodemailer with Gmail SMTP)
  * Sends transactional emails such as Password Reset OTP.
  * Configured via EMAIL_USER and EMAIL_APP_PASSWORD environment variables.
+ * Uses a pooled singleton transporter on port 465 (secure direct TLS) with fast timeouts.
  */
 
 const nodemailer = require('nodemailer');
@@ -86,56 +87,105 @@ const generateOtpEmailTemplate = (otp) => {
   `.trim();
 };
 
+// Singleton Transporter & Config Tracking
+let cachedTransporter = null;
+let lastUser = null;
+let lastPass = null;
+
 /**
- * Creates and returns a Nodemailer transporter configured for Gmail SMTP.
+ * Returns a singleton Nodemailer transporter with connection pooling and timeouts.
+ * Recreates only if credentials have changed.
  */
-const createTransporter = () => {
+const getTransporter = () => {
   const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
-  const pass = process.env.EMAIL_APP_PASSWORD ? process.env.EMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') : '';
+  // Strip all whitespace from 16-character Google App Password (e.g. 'abcd efgh ijkl mnop' -> 'abcdefghijklmnop')
+  const pass = process.env.EMAIL_APP_PASSWORD 
+    ? process.env.EMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') 
+    : '';
 
   if (!user || !pass) {
+    cachedTransporter = null;
     return null;
   }
 
-  return nodemailer.createTransport({
-    service: 'gmail',
+  // Reuse existing transporter if credentials haven't changed
+  if (cachedTransporter && user === lastUser && pass === lastPass) {
+    return cachedTransporter;
+  }
+
+  lastUser = user;
+  lastPass = pass;
+
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.SMTP_PORT || '465', 10);
+  const secure = process.env.SMTP_SECURE !== 'false'; // true for port 465
+
+  cachedTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    connectionTimeout: 10000, // 10s connection establishment timeout
+    greetingTimeout: 10000,   // 10s greeting timeout
+    socketTimeout: 10000,     // 10s socket inactivity timeout
     auth: {
       user,
       pass
     }
   });
+
+  return cachedTransporter;
 };
+
+// Eagerly initialize singleton transporter on module load if credentials are in process.env
+if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+  try {
+    getTransporter();
+  } catch (_e) {
+    // Will retry lazily on first sendOtpEmail call
+  }
+}
 
 /**
  * Send Password Reset OTP Email
  * @param {string} email - Destination registered email
  * @param {string} otp - 6-digit numeric OTP string
- * @returns {Promise<{success: boolean, messageId?: string, error?: string, mocked?: boolean}>}
+ * @returns {Promise<{success: boolean, messageId?: string, error?: string, mocked?: boolean, durationMs?: number, code?: string}>}
  */
 const sendOtpEmail = async (email, otp) => {
   const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
-  const pass = process.env.EMAIL_APP_PASSWORD ? process.env.EMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') : '';
-
-  console.log(`[Email Service] Dispatching OTP email to ${email} (Provider: ${user && pass ? 'Gmail SMTP' : 'Mock/Console'})`);
+  const pass = process.env.EMAIL_APP_PASSWORD 
+    ? process.env.EMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') 
+    : '';
 
   if (!user || !pass) {
-    // Development / Test mode fallback: Log clearly to console so flows can be tested without active Gmail credentials
+    // Development / Test mode fallback: Log clearly to console
+    console.log(`[Email Service] Dispatching OTP email to ${email} (Provider: Mock/Console)`);
     console.log(`=======================================================`);
     console.log(`📧 [MOCK EMAIL] OTP GENERATED FOR ${email}: ${otp}`);
     console.log(`Valid for 5 minutes.`);
-    console.log(`Set EMAIL_USER and EMAIL_APP_PASSWORD in .env for live Gmail delivery.`);
+    console.log(`Set EMAIL_USER and EMAIL_APP_PASSWORD in .env / Render for live Gmail delivery.`);
     console.log(`=======================================================`);
     return { success: true, mocked: true, message: `OTP logged for ${email}` };
   }
 
+  console.log(`[Email Service] Dispatching OTP email to ${email} (Provider: Gmail SMTP smtp.gmail.com:465 pooled)`);
+
   let transporter;
   try {
-    transporter = createTransporter();
+    transporter = getTransporter();
     if (!transporter) {
       throw new Error('Nodemailer transporter could not be initialized with provided credentials.');
     }
   } catch (err) {
-    console.error('[Email Service Error]: Transporter initialization failed:', err.message);
+    console.error('[Email Service Error]: Transporter initialization failed:');
+    console.error({
+      message: err.message,
+      code: err.code,
+      stack: err.stack
+    });
     return { success: false, error: err.message };
   }
 
@@ -149,18 +199,42 @@ const sendOtpEmail = async (email, otp) => {
     html: generateOtpEmailTemplate(otp)
   };
 
+  const startTime = Date.now();
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Email Service] OTP email delivered to ${email}. Message ID: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    // Race sendMail with a 12-second timeout so requests fail fast if network stalls
+    const sendMailPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => {
+      const timer = setTimeout(() => {
+        const timeoutErr = new Error('SMTP sendMail timed out after 12 seconds');
+        timeoutErr.code = 'ETIMEDOUT';
+        reject(timeoutErr);
+      }, 12000);
+      if (timer.unref) timer.unref();
+    });
+
+    const info = await Promise.race([sendMailPromise, timeoutPromise]);
+    const durationMs = Date.now() - startTime;
+    console.log(`[Email Service] OTP email delivered to ${email} in ${durationMs}ms. Message ID: ${info.messageId}`);
+    return { success: true, messageId: info.messageId, durationMs };
   } catch (err) {
-    console.error('[Email Service Error]: Failed to send OTP email:', err.message);
-    return { success: false, error: err.message };
+    const durationMs = Date.now() - startTime;
+    console.error(`[Email Service Error]: Failed to send OTP email to ${email} (took ${durationMs}ms):`);
+    console.error({
+      message: err.message,
+      code: err.code,
+      command: err.command,
+      response: err.response,
+      responseCode: err.responseCode,
+      stack: err.stack
+    });
+    return { success: false, error: err.message, code: err.code };
   }
 };
 
 module.exports = {
   sendOtpEmail,
   generateOtpEmailTemplate,
-  createTransporter
+  getTransporter,
+  createTransporter: getTransporter,
+  resetTransporterForTesting: () => { cachedTransporter = null; lastUser = null; lastPass = null; }
 };
