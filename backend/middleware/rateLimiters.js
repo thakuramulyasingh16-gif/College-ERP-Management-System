@@ -89,18 +89,18 @@ const rollNumberRateLimiter = createSimpleLimiter({
   message: 'Too many roll number update attempts. Please try again in 15 minutes.'
 });
 
-// Max 3 OTP requests per 15 minutes per identifier+mobile+IP combo
+// Max 3 OTP requests per 15 minutes per identifier+email+IP combo
 function createOtpRequestLimiter() {
   const store = new Map();
   const windowMs = 15 * 60 * 1000;
   const maxAttempts = 3;
 
   function limiter(req, res, next) {
-    const rawId = req.body?.identifier || req.body?.email || '';
-    const rawMobile = req.body?.mobile || '';
+    const rawId = req.body?.identifier || '';
+    const rawEmail = req.body?.email || req.body?.mobile || '';
     const forwarded = req.headers['x-forwarded-for'];
     const ip = forwarded ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0]).trim() : (req.ip || '127.0.0.1');
-    const key = `${String(rawId).trim().toLowerCase()}::${String(rawMobile).trim()}::${ip}`;
+    const key = `${String(rawId).trim().toLowerCase()}::${String(rawEmail).trim().toLowerCase()}::${ip}`;
     const now = Date.now();
 
     let timestamps = store.get(key) || [];

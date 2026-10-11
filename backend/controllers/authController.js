@@ -287,41 +287,62 @@ exports.logout = async (req, res) => {
  * Step 1: Request OTP for Forgot Password flow
  * Strictly available for Student and Teacher accounts only (NOT Admin).
  * Allows lookup by users.email, OR for student accounts specifically, students.roll_no.
- * Whichever matches, also requires the submitted mobile to match registered users.mobile.
+/**
+ * Step 1: Request OTP for Forgot Password (Students & Teachers only)
+ * User submits Field 1 (ID / Roll Number / Temp Roll Number / Teacher ID) and Field 2 (Registered Email).
+ * Looks up user by identifier, verifies submitted email matches registered user.email exactly.
  * Returns explicit "Not found in database" on mismatch.
  */
 exports.requestOtp = async (req, res) => {
-  const rawId = req.body?.identifier || req.body?.email || '';
-  const rawMobile = req.body?.mobile || '';
+  const rawId = req.body?.identifier || req.body?.id || req.body?.rollNo || req.body?.teacherId || '';
+  const rawEmail = req.body?.email || req.body?.registeredEmail || '';
 
-  const cleanIdentifier = String(rawId).trim().toLowerCase();
-  const cleanMobile = String(rawMobile).trim();
+  const cleanIdentifier = String(rawId).trim();
+  const cleanEmail = String(rawEmail).trim().toLowerCase();
 
   if (!cleanIdentifier) {
-    return res.status(400).json({ success: false, message: "Email, ID, or Roll Number is required" });
+    return res.status(400).json({ success: false, message: "ID, Roll Number, or Teacher ID is required" });
   }
 
-  // Mobile number MUST enforce exactly 10 digits, numeric only
-  if (!MOBILE_REGEX.test(cleanMobile)) {
-    return res.status(400).json({ success: false, message: "Mobile number must be exactly 10 digits" });
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+    return res.status(400).json({ success: false, message: "A valid registered email address is required" });
   }
 
   try {
     // Look up user:
-    // (a) users.email matches (student or teacher)
-    // (b) for student accounts specifically, students.roll_no matches
+    // (a) For student: students.roll_no matches (final or temp roll no), OR students.id matches, OR users.id matches
+    // (b) For teacher: staff.teacher_code matches, OR CONCAT('TCH-', staff.id) matches, OR staff.id matches, OR users.id matches
+    // (c) users.email matches (as additional fallback if identifier was email)
     // Admin accounts are excluded from OTP flow (returns Not found in database)
+    const cleanIdLower = cleanIdentifier.toLowerCase();
     const [users] = await db.execute(`
-      SELECT u.id, u.email, u.mobile, u.role, st.roll_no
+      SELECT u.id, u.email, u.mobile, u.role, st.roll_no, sf.teacher_code
       FROM users u
-      LEFT JOIN students st ON st.user_id = u.id
+      LEFT JOIN students st ON st.user_id = u.id AND u.role = 'student'
+      LEFT JOIN staff sf ON sf.user_id = u.id AND u.role = 'teacher'
       WHERE (
-          LOWER(u.email) = ? 
-          OR (u.role = 'student' AND st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+          (u.role = 'student' AND (
+              (st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+              OR CAST(st.id AS CHAR) = ?
+              OR CAST(u.id AS CHAR) = ?
+          ))
+          OR
+          (u.role = 'teacher' AND (
+              (sf.teacher_code IS NOT NULL AND LOWER(sf.teacher_code) = ?)
+              OR LOWER(CONCAT('tch-', sf.id)) = ?
+              OR CAST(sf.id AS CHAR) = ?
+              OR CAST(u.id AS CHAR) = ?
+          ))
+          OR LOWER(u.email) = ?
         )
         AND u.role IN ('student', 'teacher')
       LIMIT 1
-    `, [cleanIdentifier, cleanIdentifier]);
+    `, [
+      cleanIdLower, cleanIdentifier, cleanIdentifier,
+      cleanIdLower, cleanIdLower, cleanIdentifier, cleanIdentifier,
+      cleanIdLower
+    ]);
 
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: "Not found in database" });
@@ -329,8 +350,8 @@ exports.requestOtp = async (req, res) => {
 
     const user = users[0];
 
-    // Whichever matched, then ALSO require the submitted mobile number to match that SAME user's registered users.mobile exactly
-    if (!user.mobile || String(user.mobile).trim() !== cleanMobile) {
+    // Check that the submitted email matches that user's registered email in the users table exactly
+    if (!user.email || user.email.toLowerCase().trim() !== cleanEmail) {
       return res.status(404).json({ success: false, message: "Not found in database" });
     }
 
@@ -343,7 +364,7 @@ exports.requestOtp = async (req, res) => {
       otp,
       expiresAt: Date.now() + ttlMs,
       attempts: 0,
-      mobile: cleanMobile,
+      email: cleanEmail,
       identifier: cleanIdentifier
     });
 
@@ -378,11 +399,11 @@ exports.verifyOtp = async (req, res) => {
   const rawId = req.body?.identifier || req.body?.email || '';
   const rawOtp = req.body?.otp || '';
 
-  const cleanIdentifier = String(rawId).trim().toLowerCase();
+  const cleanIdentifier = String(rawId).trim();
   const cleanOtp = String(rawOtp).trim();
 
   if (!cleanIdentifier) {
-    return res.status(400).json({ success: false, message: "Email, ID, or Roll Number is required" });
+    return res.status(400).json({ success: false, message: "ID, Roll Number, or Teacher ID is required" });
   }
 
   if (!cleanOtp || !/^[0-9]{6}$/.test(cleanOtp)) {
@@ -390,17 +411,34 @@ exports.verifyOtp = async (req, res) => {
   }
 
   try {
+    const cleanIdLower = cleanIdentifier.toLowerCase();
     const [users] = await db.execute(`
-      SELECT u.id, u.email, u.mobile, u.role, st.roll_no
+      SELECT u.id, u.email, u.mobile, u.role, st.roll_no, sf.teacher_code
       FROM users u
-      LEFT JOIN students st ON st.user_id = u.id
+      LEFT JOIN students st ON st.user_id = u.id AND u.role = 'student'
+      LEFT JOIN staff sf ON sf.user_id = u.id AND u.role = 'teacher'
       WHERE (
-          LOWER(u.email) = ? 
-          OR (u.role = 'student' AND st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+          (u.role = 'student' AND (
+              (st.roll_no IS NOT NULL AND LOWER(st.roll_no) = ?)
+              OR CAST(st.id AS CHAR) = ?
+              OR CAST(u.id AS CHAR) = ?
+          ))
+          OR
+          (u.role = 'teacher' AND (
+              (sf.teacher_code IS NOT NULL AND LOWER(sf.teacher_code) = ?)
+              OR LOWER(CONCAT('tch-', sf.id)) = ?
+              OR CAST(sf.id AS CHAR) = ?
+              OR CAST(u.id AS CHAR) = ?
+          ))
+          OR LOWER(u.email) = ?
         )
         AND u.role IN ('student', 'teacher')
       LIMIT 1
-    `, [cleanIdentifier, cleanIdentifier]);
+    `, [
+      cleanIdLower, cleanIdentifier, cleanIdentifier,
+      cleanIdLower, cleanIdLower, cleanIdentifier, cleanIdentifier,
+      cleanIdLower
+    ]);
 
     if (users.length === 0) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP. Please request a new one." });
@@ -500,7 +538,7 @@ exports.resetForgotPassword = async (req, res) => {
     });
   }
 
-  if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+  if (!confirmPassword || newPassword !== confirmPassword) {
     return res.status(400).json({
       success: false,
       message: "Passwords do not match"
@@ -518,6 +556,9 @@ exports.resetForgotPassword = async (req, res) => {
 
     // Invalidate reset token so it can never be reused
     activeResetTokens.delete(resetToken);
+
+    // Invalidate any outstanding OTP for that user
+    otpStore.delete(tokenRecord.userId);
 
     return res.status(200).json({
       success: true,

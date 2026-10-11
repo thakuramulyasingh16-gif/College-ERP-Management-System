@@ -18,13 +18,13 @@ const Login = () => {
     open: false,
     step: 1, // 1: Request OTP, 2: Verify OTP, 3: Set New Password
     identifier: '',
-    mobile: '',
+    email: '',
     otp: '',
     newPassword: '',
     confirmPassword: '',
     resetToken: '',
     loading: false,
-    mobileError: '',
+    emailError: '',
     error: '',
     successMsg: '',
     otpSuccessMsg: '',
@@ -130,26 +130,27 @@ const Login = () => {
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     const cleanId = forgotModal.identifier.trim();
-    const cleanMobile = forgotModal.mobile.trim();
+    const cleanEmail = forgotModal.email.trim();
 
     if (!cleanId) {
-      setForgotModal(prev => ({ ...prev, error: 'Please enter your Email, ID, or Roll Number' }));
+      setForgotModal(prev => ({ ...prev, error: 'Please enter your ID, Roll Number, or Teacher ID' }));
       return;
     }
 
-    // STRICT: Mobile number MUST enforce exactly 10 digits, numeric only
-    if (!/^[0-9]{10}$/.test(cleanMobile)) {
-      setForgotModal(prev => ({ ...prev, mobileError: 'Mobile number must be exactly 10 digits' }));
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setForgotModal(prev => ({ ...prev, emailError: 'Please enter a valid registered email address' }));
       return;
     }
 
-    setForgotModal(prev => ({ ...prev, loading: true, error: '', mobileError: '' }));
+    setForgotModal(prev => ({ ...prev, loading: true, error: '', emailError: '' }));
 
     try {
       const res = await fetch(`${API_BASE}/auth/forgot-password/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: cleanId, mobile: cleanMobile })
+        body: JSON.stringify({ identifier: cleanId, email: cleanEmail })
       });
 
       const data = await res.json().catch(() => ({}));
@@ -204,7 +205,11 @@ const Login = () => {
       const res = await fetch(`${API_BASE}/auth/forgot-password/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: forgotModal.identifier.trim(), otp: cleanOtp })
+        body: JSON.stringify({
+          identifier: forgotModal.identifier.trim(),
+          email: forgotModal.email.trim(),
+          otp: cleanOtp
+        })
       });
 
       const data = await res.json().catch(() => ({}));
@@ -300,13 +305,13 @@ const Login = () => {
       open: false,
       step: 1,
       identifier: '',
-      mobile: '',
+      email: '',
       otp: '',
       newPassword: '',
       confirmPassword: '',
       resetToken: '',
       loading: false,
-      mobileError: '',
+      emailError: '',
       error: '',
       successMsg: '',
       otpSuccessMsg: '',
@@ -496,13 +501,13 @@ const Login = () => {
                       open: true,
                       step: 1,
                       identifier: email.trim(),
-                      mobile: '',
+                      email: '',
                       otp: '',
                       newPassword: '',
                       confirmPassword: '',
                       resetToken: '',
                       loading: false,
-                      mobileError: '',
+                      emailError: '',
                       error: '',
                       successMsg: '',
                       otpSuccessMsg: '',
@@ -774,12 +779,12 @@ const Login = () => {
               <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Email, ID, or Roll Number (if student) <span style={{ color: '#EF4444' }}>*</span>
+                    ID / Roll Number (Student) or Teacher ID <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. roll number or email"
+                    placeholder="Roll Number, Temp Roll No, or Teacher ID"
                     value={forgotModal.identifier}
                     onChange={(e) => setForgotModal({ ...forgotModal, identifier: e.target.value, error: '' })}
                     style={{
@@ -800,25 +805,23 @@ const Login = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Registered Mobile Number <span style={{ color: '#EF4444' }}>*</span>
+                    Registered Email ID <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <div style={{ position: 'relative', width: '100%' }}>
                     <input
-                      type="tel"
+                      type="email"
                       required
-                      maxLength={10}
-                      placeholder="10-digit mobile (e.g. 9876543210)"
-                      value={forgotModal.mobile}
+                      placeholder="Enter your registered email address"
+                      value={forgotModal.email}
                       onChange={(e) => {
-                        const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setForgotModal({ ...forgotModal, mobile: digitsOnly, mobileError: '', error: '' });
+                        setForgotModal({ ...forgotModal, email: e.target.value, emailError: '', error: '' });
                       }}
                       style={{
                         width: '100%',
                         padding: '0.75rem 1rem',
                         borderRadius: '14px',
                         background: 'var(--clay-surface-inset)',
-                        border: forgotModal.mobileError ? '1px solid #EF4444' : 'none',
+                        border: forgotModal.emailError ? '1px solid #EF4444' : 'none',
                         color: 'var(--clay-text)',
                         fontSize: '0.875rem',
                         fontWeight: 600,
@@ -828,14 +831,14 @@ const Login = () => {
                       }}
                     />
                   </div>
-                  {forgotModal.mobileError ? (
+                  {forgotModal.emailError ? (
                     <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <AlertCircle size={12} />
-                      <span>{forgotModal.mobileError}</span>
+                      <span>{forgotModal.emailError}</span>
                     </p>
                   ) : (
                     <p style={{ color: 'var(--clay-muted)', fontSize: '0.6875rem', fontWeight: 500, margin: '0.25rem 0 0 0' }}>
-                      Must be exactly 10 digits as registered on your account.
+                      Must match the registered email for this account.
                     </p>
                   )}
                 </div>
