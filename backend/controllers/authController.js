@@ -368,11 +368,16 @@ exports.requestOtp = async (req, res) => {
       identifier: cleanIdentifier
     });
 
-    // Send via Email Service (Nodemailer Gmail SMTP) to registered user.email
-    const emailResult = await emailService.sendOtpEmail(user.email, otp);
-    if (!emailResult || !emailResult.success) {
+    // Send via Email Service (Resend HTTPS API) to registered user.email
+    try {
+      const emailResult = await emailService.sendOtpEmail(user.email, otp);
+      if (emailResult && emailResult.success === false) {
+        throw new Error(emailResult.error || 'Failed to send OTP email');
+      }
+    } catch (emailErr) {
       // Invalidate stored OTP if email failed to send
       otpStore.delete(user.id);
+      console.error("[Email Service Error - Resend]:", emailErr.message || emailErr);
       return res.status(500).json({
         success: false,
         message: "Could not send OTP, please try again later"

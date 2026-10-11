@@ -1,14 +1,15 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const erpRoutes = require('./routes/erpRoutes');
 const uploadAuth = require('./middleware/uploadAuth');
 const db = require('./config/db');
 const path = require('path');
 
-dotenv.config();
 const app = express();
 
 // Security: standard security headers with cross-origin asset support

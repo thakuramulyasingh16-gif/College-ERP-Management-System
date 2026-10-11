@@ -5,6 +5,7 @@
  */
 
 const { Resend } = require('resend');
+require('dotenv').config();
 
 /**
  * Generate clean, modern HTML template for password reset OTP email
@@ -86,85 +87,43 @@ const generateOtpEmailTemplate = (otp) => {
   `.trim();
 };
 
-// Resend Singleton Client
-let cachedResend = null;
-let lastApiKey = null;
-
-const getResendClient = () => {
-  const apiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
-  if (!apiKey) return null;
-  if (cachedResend && apiKey === lastApiKey) {
-    return cachedResend;
+// Resend client initialization via Proxy (safely reading process.env.RESEND_API_KEY)
+const resend = new Proxy({}, {
+  get(target, prop) {
+    const key = (process.env.RESEND_API_KEY || '').trim();
+    const client = new Resend(key || 're_placeholder_missing_key');
+    return client[prop];
   }
-  lastApiKey = apiKey;
-  cachedResend = new Resend(apiKey);
-  return cachedResend;
-};
+});
 
 /**
  * Send Password Reset OTP Email using Resend HTTP API (over port 443 HTTPS).
  * @param {string} email - Destination registered email
  * @param {string} otp - 6-digit numeric OTP string
- * @returns {Promise<{success: boolean, messageId?: string, error?: string, mocked?: boolean, durationMs?: number}>}
+ * @returns {Promise<object>} - Resend send result data
  */
-const sendOtpEmail = async (email, otp) => {
-  const apiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
-
-  // If no RESEND_API_KEY is configured:
-  if (!apiKey) {
-    if (process.env.NODE_ENV === 'production' && !process.env.MOCK_EMAIL_FOR_TESTS) {
-      console.error('[Email Service Error]: RESEND_API_KEY environment variable is missing on this server.');
-      console.error('Please configure RESEND_API_KEY in the Render Dashboard (Environment Variables tab).');
-      return { success: false, error: 'RESEND_API_KEY is not configured' };
-    }
-
-    // Development / Local Test mode fallback
-    console.log(`[Email Service] Dispatching OTP email to ${email} (Provider: Mock/Console)`);
-    console.log(`=======================================================`);
-    console.log(`📧 [MOCK EMAIL] OTP GENERATED FOR ${email}: ${otp}`);
-    console.log(`Valid for 5 minutes.`);
-    console.log(`Set RESEND_API_KEY in .env / Render for live email delivery via Resend API.`);
-    console.log(`=======================================================`);
-    return { success: true, mocked: true, message: `OTP logged for ${email}` };
+async function sendOtpEmail(email, otp) {
+  // Automated test mock check (for local test runner suites)
+  if (process.env.MOCK_EMAIL_FOR_TESTS === 'true') {
+    console.log(`[Email Service - Mock] Dispatching OTP email to ${email}: ${otp}`);
+    return { id: 'mock-test-id', success: true };
   }
 
-  console.log(`[Email Service] Dispatching OTP email to ${email} (Provider: Resend HTTPS API)`);
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM || 'ERP Portal <onboarding@resend.dev>',
+    to: email,
+    subject: 'Your ERP Portal Password Reset OTP',
+    html: generateOtpEmailTemplate(otp)
+  });
 
-  const startTime = Date.now();
-  try {
-    const resend = getResendClient();
-    const fromAddress = process.env.RESEND_FROM || 'ERP Portal <onboarding@resend.dev>';
-
-    const { data, error } = await resend.emails.send({
-      from: fromAddress,
-      to: email,
-      subject: 'Your ERP Portal Password Reset OTP',
-      text: `Your College ERP Portal password reset OTP is: ${otp}\n\nThis OTP is valid for 5 minutes only.\nDo not share this OTP with anyone.\n\nIf you did not request this, please ignore this email.`,
-      html: generateOtpEmailTemplate(otp)
-    });
-
-    if (error) {
-      console.error('[Email Service Error - Resend API]: Failed to send OTP email:');
-      console.error({
-        message: error.message,
-        name: error.name
-      });
-      return { success: false, error: error.message };
-    }
-
-    const durationMs = Date.now() - startTime;
-    console.log(`[Email Service - Resend API] OTP email successfully sent to ${email} in ${durationMs}ms. Message ID: ${data?.id}`);
-    return { success: true, messageId: data?.id, durationMs };
-  } catch (err) {
-    const durationMs = Date.now() - startTime;
-    console.error(`[Email Service Error - Resend API]: Exception during send (took ${durationMs}ms):`);
-    console.error({
-      message: err.message,
-      stack: err.stack
-    });
-    return { success: false, error: err.message };
+  if (error) {
+    console.error('[Email Service Error - Resend]:', error);
+    throw new Error('Failed to send OTP email');
   }
-};
+
+  console.log(`[Email Service - Resend API] OTP email successfully sent to ${email}. Message ID: ${data?.id}`);
+  return { ...data, success: true };
+}
 
 /*
  * NOTE / REFERENCE:
@@ -177,9 +136,6 @@ const sendOtpEmail = async (email, otp) => {
 module.exports = {
   sendOtpEmail,
   generateOtpEmailTemplate,
-  getResendClient,
-  resetClientForTesting: () => {
-    cachedResend = null;
-    lastApiKey = null;
-  }
+  resend
 };
+
