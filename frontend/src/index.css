@@ -5,6 +5,33 @@
    CENTRALIZED CLAYMORPHISM DESIGN SYSTEM (ERP DESIGN TOKENS)
    =============================================================== */
 :root {
+  /* ===============================================================
+     INSTITUTIONAL DESIGN TOKENS (new visual identity, rolling out
+     screen by screen — currently used on Login / Forgot Password)
+     =============================================================== */
+  --inst-ink:            #152A4A;   /* primary navy — headings, primary actions */
+  --inst-ink-700:        #1E3A63;
+  --inst-ink-tint:       #EEF2F7;   /* pale navy tint for icon wells */
+  --inst-paper:          #F7F4EE;   /* warm paper background, not stark white */
+  --inst-surface:        #FFFFFF;
+  --inst-border:         #E4DFD2;
+  --inst-border-strong:  #D8D1BE;
+  --inst-text:           #22262E;
+  --inst-muted:          #64666D;
+  --inst-gold:           #AD7F2E;   /* accent — focus rings, links, highlights */
+  --inst-gold-tint:      #F3E9D4;
+  --inst-success:        #3F7A52;
+  --inst-success-tint:   #EAF3EC;
+  --inst-danger:         #9C3B32;
+  --inst-danger-tint:    #FBECEA;
+  --inst-radius-sm:      8px;
+  --inst-radius:         10px;
+  --inst-radius-lg:      14px;
+  --inst-shadow:         0 1px 2px rgba(21, 42, 74, 0.06), 0 8px 24px -12px rgba(21, 42, 74, 0.18);
+  --inst-shadow-sm:      0 1px 2px rgba(21, 42, 74, 0.08);
+  --font-display:        'Fraunces', Georgia, serif;
+  --font-body:           'Source Sans 3', 'Segoe UI', sans-serif;
+
   /* Pastel clay backgrounds */
   --clay-bg-start:       #E8ECFF;
   --clay-bg-end:         #F5F3FF;

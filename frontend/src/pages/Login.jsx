@@ -330,60 +330,60 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%)',
+        background: 'var(--inst-paper)',
+        backgroundImage: 'radial-gradient(circle at 15% 10%, rgba(21,42,74,0.05), transparent 40%), radial-gradient(circle at 85% 90%, rgba(173,127,46,0.07), transparent 40%)',
         padding: '1.5rem',
+        fontFamily: 'var(--font-body)',
       }}
     >
-      {/* Claymorphism Login Card */}
+      {/* Login Card */}
       <div
         style={{
           width: '100%',
-          maxWidth: '430px',
-          background: 'var(--clay-surface)',
-          borderRadius: '28px',
+          maxWidth: '408px',
+          background: 'var(--inst-surface)',
+          borderRadius: 'var(--inst-radius-lg)',
           padding: '2.5rem 2.25rem',
-          boxShadow: '8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8)',
-          border: 'none',
+          boxShadow: 'var(--inst-shadow)',
+          border: '1px solid var(--inst-border)',
+          borderTop: '3px solid var(--inst-ink)',
           position: 'relative',
         }}
       >
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          {/* Logo inside soft rounded clay container */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '72px',
-            height: '72px',
-            borderRadius: '22px',
-            background: 'var(--clay-surface)',
-            boxShadow: '6px 6px 12px rgba(163, 177, 198, 0.55), -6px -6px 12px rgba(255, 255, 255, 0.85)',
-            border: 'none',
-            marginBottom: '1rem',
+            width: '64px',
+            height: '64px',
+            borderRadius: 'var(--inst-radius)',
+            background: 'var(--inst-ink-tint)',
+            border: '1px solid var(--inst-border)',
+            marginBottom: '1.125rem',
           }}>
             <img
               src={logo}
               alt="CGC Logo"
-              style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+              style={{ width: '42px', height: '42px', objectFit: 'contain' }}
             />
           </div>
 
           <h1 style={{
+            fontFamily: 'var(--font-display)',
             fontSize: '1.5rem',
-            fontWeight: 900,
-            color: 'var(--clay-text)',
-            letterSpacing: '-0.02em',
-            margin: '0 0 0.25rem 0',
+            fontWeight: 600,
+            color: 'var(--inst-ink)',
+            letterSpacing: '-0.01em',
+            margin: '0 0 0.3rem 0',
           }}>
-            CGC ERP Portal
+            ERP Portal
           </h1>
           <p style={{
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            color: 'var(--clay-muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            color: 'var(--inst-muted)',
             margin: 0,
           }}>
             City Group of Colleges
@@ -395,19 +395,18 @@ const Login = () => {
           <div style={{
             marginBottom: '1.25rem',
             padding: '0.75rem 1rem',
-            background: '#FEF2F2',
-            boxShadow: 'inset 3px 3px 6px rgba(239, 68, 68, 0.2), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
-            borderRadius: '16px',
-            border: 'none',
+            background: 'var(--inst-danger-tint)',
+            borderRadius: 'var(--inst-radius-sm)',
+            border: '1px solid rgba(156, 59, 50, 0.25)',
             display: 'flex',
             alignItems: 'center',
             gap: '0.625rem',
           }}>
-            <AlertCircle size={17} style={{ color: 'var(--clay-danger)', flexShrink: 0 }} />
+            <AlertCircle size={17} style={{ color: 'var(--inst-danger)', flexShrink: 0 }} />
             <p style={{
               fontSize: '0.8125rem',
-              color: 'var(--clay-danger)',
-              fontWeight: 600,
+              color: 'var(--inst-danger)',
+              fontWeight: 500,
               margin: 0,
             }}>
               {error}
@@ -420,74 +419,67 @@ const Login = () => {
           <div>
             <label style={{
               display: 'block',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--clay-muted)',
-              marginBottom: '0.5rem',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: 'var(--inst-muted)',
+              marginBottom: '0.4rem',
             }}>
               Email / ID
             </label>
             <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
               <Mail
-                size={20}
+                size={17}
                 style={{
                   position: 'absolute',
-                  left: '16px',
+                  left: '14px',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   pointerEvents: 'none',
                   zIndex: 2,
-                  width: '20px',
-                  height: '20px',
-                  color: 'var(--clay-primary)',
+                  color: 'var(--inst-muted)',
                   flexShrink: 0,
                 }}
               />
               <input
                 type="text"
-                placeholder="Enter Email, Roll No, or Teacher ID"
+                placeholder="Email, Roll No, or Teacher ID"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{
                   width: '100%',
-                  paddingTop: '0.8125rem',
-                  paddingBottom: '0.8125rem',
+                  paddingTop: '0.75rem',
+                  paddingBottom: '0.75rem',
                   paddingRight: '1rem',
-                  paddingLeft: '48px',
-                  borderRadius: '18px',
-                  background: 'var(--clay-surface-inset)',
-                  border: 'none',
-                  color: 'var(--clay-text)',
+                  paddingLeft: '42px',
+                  borderRadius: 'var(--inst-radius-sm)',
+                  background: 'var(--inst-surface)',
+                  border: '1px solid var(--inst-border-strong)',
+                  color: 'var(--inst-text)',
                   fontSize: '0.875rem',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   outline: 'none',
-                  boxShadow: 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)',
-                  transition: 'all 0.2s ease',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                   boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
-                  e.target.style.background = '#F4F7FD';
-                  e.target.style.boxShadow = 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7), 0 0 0 2px rgba(99, 102, 241, 0.35)';
+                  e.target.style.borderColor = 'var(--inst-ink)';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(21, 42, 74, 0.1)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.background = 'var(--clay-surface-inset)';
-                  e.target.style.boxShadow = 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)';
+                  e.target.style.borderColor = 'var(--inst-border-strong)';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
               <label style={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                color: 'var(--clay-muted)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--inst-muted)',
               }}>
                 Password
               </label>
@@ -518,110 +510,103 @@ const Login = () => {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: 'var(--clay-primary)',
+                    color: 'var(--inst-gold)',
                     fontSize: '0.75rem',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     outline: 'none',
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                 >
-                  Forgot Password?
+                  Forgot password?
                 </button>
               )}
             </div>
 
             <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
               <Lock
-                size={20}
+                size={17}
                 style={{
                   position: 'absolute',
-                  left: '16px',
+                  left: '14px',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   pointerEvents: 'none',
                   zIndex: 2,
-                  width: '20px',
-                  height: '20px',
-                  color: 'var(--clay-primary)',
+                  color: 'var(--inst-muted)',
                   flexShrink: 0,
                 }}
               />
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{
                   width: '100%',
-                  paddingTop: '0.8125rem',
-                  paddingBottom: '0.8125rem',
+                  paddingTop: '0.75rem',
+                  paddingBottom: '0.75rem',
                   paddingRight: '1rem',
-                  paddingLeft: '48px',
-                  borderRadius: '18px',
-                  background: 'var(--clay-surface-inset)',
-                  border: 'none',
-                  color: 'var(--clay-text)',
+                  paddingLeft: '42px',
+                  borderRadius: 'var(--inst-radius-sm)',
+                  background: 'var(--inst-surface)',
+                  border: '1px solid var(--inst-border-strong)',
+                  color: 'var(--inst-text)',
                   fontSize: '0.875rem',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   outline: 'none',
-                  boxShadow: 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)',
-                  transition: 'all 0.2s ease',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                   boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
-                  e.target.style.background = '#F4F7FD';
-                  e.target.style.boxShadow = 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7), 0 0 0 2px rgba(99, 102, 241, 0.35)';
+                  e.target.style.borderColor = 'var(--inst-ink)';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(21, 42, 74, 0.1)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.background = 'var(--clay-surface-inset)';
-                  e.target.style.boxShadow = 'inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7)';
+                  e.target.style.borderColor = 'var(--inst-border-strong)';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
           </div>
 
-          {/* Primary Clay Sign In Button */}
+          {/* Primary Sign In Button */}
           <button
             type="submit"
             disabled={loading || lockoutSeconds > 0}
             style={{
               marginTop: '0.5rem',
               width: '100%',
-              padding: '0.875rem',
-              borderRadius: '18px',
+              padding: '0.8125rem',
+              borderRadius: 'var(--inst-radius-sm)',
               border: 'none',
-              background: lockoutSeconds > 0
-                ? '#94A3B8'
-                : 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
+              background: lockoutSeconds > 0 ? '#9AA0AC' : 'var(--inst-ink)',
               color: '#FFFFFF',
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: '0.875rem',
-              letterSpacing: '0.02em',
               cursor: (loading || lockoutSeconds > 0) ? 'not-allowed' : 'pointer',
-              boxShadow: lockoutSeconds > 0
-                ? 'inset 2px 2px 4px rgba(0, 0, 0, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.5)'
-                : '6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.625rem',
-              transition: 'all 0.2s ease',
-              opacity: (loading || lockoutSeconds > 0) ? 0.75 : 1,
+              transition: 'background 0.15s ease',
+              opacity: (loading || lockoutSeconds > 0) ? 0.8 : 1,
             }}
+            onMouseEnter={(e) => { if (!loading && lockoutSeconds === 0) e.currentTarget.style.background = 'var(--inst-ink-700)'; }}
+            onMouseLeave={(e) => { if (!loading && lockoutSeconds === 0) e.currentTarget.style.background = 'var(--inst-ink)'; }}
           >
             {loading ? (
-              <span>Signing In...</span>
+              <span>Signing in…</span>
             ) : lockoutSeconds > 0 ? (
               <>
-                <Lock size={18} strokeWidth={2.5} />
+                <Lock size={16} />
                 <span>Locked ({lockoutSeconds}s)</span>
               </>
             ) : (
               <>
-                <LogIn size={18} strokeWidth={2.5} />
+                <LogIn size={16} />
                 <span>Sign In</span>
               </>
             )}
@@ -633,22 +618,21 @@ const Login = () => {
               style={{
                 marginTop: '0.25rem',
                 padding: '0.75rem 1rem',
-                background: '#FEF2F2',
-                boxShadow: 'inset 3px 3px 6px rgba(239, 68, 68, 0.2), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
-                borderRadius: '16px',
-                border: 'none',
+                background: 'var(--inst-danger-tint)',
+                borderRadius: 'var(--inst-radius-sm)',
+                border: '1px solid rgba(156, 59, 50, 0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.625rem',
               }}
             >
-              <AlertCircle size={17} style={{ color: 'var(--clay-danger)', flexShrink: 0 }} />
+              <AlertCircle size={17} style={{ color: 'var(--inst-danger)', flexShrink: 0 }} />
               <p
                 style={{
                   fontSize: '0.8125rem',
-                  color: 'var(--clay-danger)',
-                  fontWeight: 600,
+                  color: 'var(--inst-danger)',
+                  fontWeight: 500,
                   margin: 0,
                   textAlign: 'center',
                 }}
@@ -661,14 +645,13 @@ const Login = () => {
 
         <p style={{
           textAlign: 'center',
-          fontSize: '0.6875rem',
-          fontWeight: 600,
-          color: 'var(--clay-muted)',
+          fontSize: '0.75rem',
+          fontWeight: 400,
+          color: 'var(--inst-muted)',
           marginTop: '1.75rem',
           marginBottom: 0,
-          letterSpacing: '0.04em',
         }}>
-          City Group of Colleges  Secure ERP Portal
+          City Group of Colleges · Secure ERP Portal
         </p>
       </div>
 
@@ -677,9 +660,7 @@ const Login = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(21, 42, 74, 0.45)',
           zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
@@ -688,35 +669,37 @@ const Login = () => {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '430px',
-            background: 'var(--clay-surface)',
-            borderRadius: '28px',
-            padding: '2rem 1.75rem',
-            boxShadow: '10px 10px 20px rgba(0, 0, 0, 0.2), -6px -6px 14px rgba(255, 255, 255, 0.8)',
-            position: 'relative'
+            maxWidth: '420px',
+            background: 'var(--inst-surface)',
+            borderRadius: 'var(--inst-radius-lg)',
+            padding: '1.875rem 1.75rem',
+            border: '1px solid var(--inst-border)',
+            boxShadow: '0 24px 48px -12px rgba(21, 42, 74, 0.35)',
+            position: 'relative',
+            fontFamily: 'var(--font-body)',
           }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '14px',
-                  background: '#EEF2FF',
-                  color: 'var(--clay-primary)',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: 'var(--inst-radius-sm)',
+                  background: 'var(--inst-ink-tint)',
+                  color: 'var(--inst-ink)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)'
+                  border: '1px solid var(--inst-border)'
                 }}>
-                  <Key size={20} />
+                  <Key size={18} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 900, color: 'var(--clay-text)' }}>
+                  <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.0625rem', fontWeight: 600, color: 'var(--inst-ink)' }}>
                     {forgotModal.step === 1 ? 'Reset Password' : forgotModal.step === 2 ? 'Verify OTP' : 'Set New Password'}
                   </h3>
-                  <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 600, color: 'var(--clay-muted)' }}>
-                    {forgotModal.step === 1 ? 'Step 1 of 3: Request OTP' : forgotModal.step === 2 ? 'Step 2 of 3: Enter OTP' : 'Step 3 of 3: New Password'}
+                  <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 500, color: 'var(--inst-muted)' }}>
+                    {forgotModal.step === 1 ? 'Step 1 of 3 — Request OTP' : forgotModal.step === 2 ? 'Step 2 of 3 — Enter OTP' : 'Step 3 of 3 — New password'}
                   </p>
                 </div>
               </div>
@@ -727,12 +710,12 @@ const Login = () => {
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--clay-muted)',
+                  color: 'var(--inst-muted)',
                   padding: '4px',
-                  borderRadius: '10px'
+                  borderRadius: 'var(--inst-radius-sm)'
                 }}
               >
-                <X size={20} />
+                <X size={19} />
               </button>
             </div>
 
@@ -741,14 +724,15 @@ const Login = () => {
               <div style={{
                 marginBottom: '1rem',
                 padding: '0.75rem',
-                background: '#FEF2F2',
-                borderRadius: '14px',
+                background: 'var(--inst-danger-tint)',
+                borderRadius: 'var(--inst-radius-sm)',
+                border: '1px solid rgba(156, 59, 50, 0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                color: 'var(--clay-danger)',
+                color: 'var(--inst-danger)',
                 fontSize: '0.8125rem',
-                fontWeight: 600
+                fontWeight: 500
               }}>
                 <AlertCircle size={16} style={{ flexShrink: 0 }} />
                 <span>{forgotModal.error}</span>
@@ -760,14 +744,15 @@ const Login = () => {
               <div style={{
                 marginBottom: '1rem',
                 padding: '0.75rem',
-                background: '#ECFDF5',
-                borderRadius: '14px',
+                background: 'var(--inst-success-tint)',
+                borderRadius: 'var(--inst-radius-sm)',
+                border: '1px solid rgba(63, 122, 82, 0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                color: '#059669',
+                color: 'var(--inst-success)',
                 fontSize: '0.8125rem',
-                fontWeight: 600
+                fontWeight: 500
               }}>
                 <CheckCircle size={16} style={{ flexShrink: 0 }} />
                 <span>{forgotModal.successMsg}</span>
@@ -778,8 +763,8 @@ const Login = () => {
             {forgotModal.step === 1 && (
               <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    ID / Roll Number (Student) or Teacher ID <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--inst-muted)', marginBottom: '0.35rem' }}>
+                    ID / Roll Number (Student) or Teacher ID <span style={{ color: 'var(--inst-danger)' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -790,22 +775,22 @@ const Login = () => {
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
-                      background: 'var(--clay-surface-inset)',
-                      border: 'none',
-                      color: 'var(--clay-text)',
+                      borderRadius: 'var(--inst-radius-sm)',
+                      background: 'var(--inst-surface)',
+                      border: '1px solid var(--inst-border-strong)',
+                      color: 'var(--inst-text)',
                       fontSize: '0.875rem',
                       fontWeight: 600,
                       outline: 'none',
-                      boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                      boxShadow: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Registered Email ID <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--inst-muted)', marginBottom: '0.35rem' }}>
+                    Registered Email ID <span style={{ color: 'var(--inst-danger)' }}>*</span>
                   </label>
                   <div style={{ position: 'relative', width: '100%' }}>
                     <input
@@ -819,25 +804,25 @@ const Login = () => {
                       style={{
                         width: '100%',
                         padding: '0.75rem 1rem',
-                        borderRadius: '14px',
-                        background: 'var(--clay-surface-inset)',
-                        border: forgotModal.emailError ? '1px solid #EF4444' : 'none',
-                        color: 'var(--clay-text)',
+                        borderRadius: 'var(--inst-radius-sm)',
+                        background: 'var(--inst-surface)',
+                        border: forgotModal.emailError ? '1px solid var(--inst-danger)' : '1px solid var(--inst-border-strong)',
+                        color: 'var(--inst-text)',
                         fontSize: '0.875rem',
                         fontWeight: 600,
                         outline: 'none',
-                        boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                        boxShadow: 'none',
                         boxSizing: 'border-box'
                       }}
                     />
                   </div>
                   {forgotModal.emailError ? (
-                    <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <p style={{ color: 'var(--inst-danger)', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <AlertCircle size={12} />
                       <span>{forgotModal.emailError}</span>
                     </p>
                   ) : (
-                    <p style={{ color: 'var(--clay-muted)', fontSize: '0.6875rem', fontWeight: 500, margin: '0.25rem 0 0 0' }}>
+                    <p style={{ color: 'var(--inst-muted)', fontSize: '0.75rem', fontWeight: 400, margin: '0.35rem 0 0 0' }}>
                       Must match the registered email for this account.
                     </p>
                   )}
@@ -850,14 +835,14 @@ const Login = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
+                      background: 'var(--inst-ink)',
                       color: '#FFF',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: forgotModal.loading ? 'not-allowed' : 'pointer',
-                      boxShadow: '4px 4px 10px rgba(99, 102, 241, 0.35)',
+                      boxShadow: 'none',
                       opacity: forgotModal.loading ? 0.7 : 1
                     }}
                   >
@@ -868,14 +853,14 @@ const Login = () => {
                     onClick={closeForgotModal}
                     style={{
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'var(--clay-surface)',
-                      color: 'var(--clay-muted)',
+                      background: 'var(--inst-surface)',
+                      color: 'var(--inst-muted)',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.8)'
+                      border: '1px solid var(--inst-border-strong)'
                     }}
                   >
                     Cancel
@@ -890,10 +875,10 @@ const Login = () => {
                 {forgotModal.otpSuccessMsg && (
                   <div style={{
                     padding: '0.75rem',
-                    background: '#F0FDF4',
-                    border: '1px solid #BBF7D0',
-                    borderRadius: '14px',
-                    color: '#15803D',
+                    background: 'var(--inst-success-tint)',
+                    border: '1px solid rgba(63, 122, 82, 0.25)',
+                    borderRadius: 'var(--inst-radius-sm)',
+                    color: 'var(--inst-success)',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     lineHeight: 1.4
@@ -903,8 +888,8 @@ const Login = () => {
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Enter 6-Digit OTP <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--inst-muted)', marginBottom: '0.35rem' }}>
+                    Enter 6-Digit OTP <span style={{ color: 'var(--inst-danger)' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -920,20 +905,20 @@ const Login = () => {
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
-                      background: 'var(--clay-surface-inset)',
-                      border: 'none',
-                      color: 'var(--clay-text)',
+                      borderRadius: 'var(--inst-radius-sm)',
+                      background: 'var(--inst-surface)',
+                      border: '1px solid var(--inst-border-strong)',
+                      color: 'var(--inst-text)',
                       fontSize: '1.25rem',
                       fontWeight: 800,
                       letterSpacing: '0.3em',
                       textAlign: 'center',
                       outline: 'none',
-                      boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                      boxShadow: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
-                  <p style={{ color: 'var(--clay-muted)', fontSize: '0.6875rem', fontWeight: 500, margin: '0.25rem 0 0 0', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--inst-muted)', fontSize: '0.75rem', fontWeight: 400, margin: '0.35rem 0 0 0', textAlign: 'center' }}>
                     OTP is valid for 5 minutes (max 5 attempts).
                   </p>
                 </div>
@@ -945,14 +930,14 @@ const Login = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
+                      background: 'var(--inst-ink)',
                       color: '#FFF',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: forgotModal.loading ? 'not-allowed' : 'pointer',
-                      boxShadow: '4px 4px 10px rgba(99, 102, 241, 0.35)',
+                      boxShadow: 'none',
                       opacity: (forgotModal.loading || forgotModal.otp.length !== 6) ? 0.6 : 1
                     }}
                   >
@@ -963,14 +948,14 @@ const Login = () => {
                     onClick={() => setForgotModal(prev => ({ ...prev, step: 1, error: '', otp: '' }))}
                     style={{
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'var(--clay-surface)',
-                      color: 'var(--clay-muted)',
+                      background: 'var(--inst-surface)',
+                      color: 'var(--inst-muted)',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.8)'
+                      border: '1px solid var(--inst-border-strong)'
                     }}
                   >
                     Back
@@ -983,8 +968,8 @@ const Login = () => {
             {forgotModal.step === 3 && (
               <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    New Password <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--inst-muted)', marginBottom: '0.35rem' }}>
+                    New Password <span style={{ color: 'var(--inst-danger)' }}>*</span>
                   </label>
                   <input
                     type="password"
@@ -996,25 +981,25 @@ const Login = () => {
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
-                      background: 'var(--clay-surface-inset)',
-                      border: 'none',
-                      color: 'var(--clay-text)',
+                      borderRadius: 'var(--inst-radius-sm)',
+                      background: 'var(--inst-surface)',
+                      border: '1px solid var(--inst-border-strong)',
+                      color: 'var(--inst-text)',
                       fontSize: '0.875rem',
                       fontWeight: 600,
                       outline: 'none',
-                      boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                      boxShadow: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
-                  <p style={{ color: 'var(--clay-muted)', fontSize: '0.6875rem', fontWeight: 500, margin: '0.25rem 0 0 0' }}>
+                  <p style={{ color: 'var(--inst-muted)', fontSize: '0.75rem', fontWeight: 400, margin: '0.35rem 0 0 0' }}>
                     Minimum 8 characters required.
                   </p>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--clay-muted)', marginBottom: '0.35rem' }}>
-                    Confirm New Password <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--inst-muted)', marginBottom: '0.35rem' }}>
+                    Confirm New Password <span style={{ color: 'var(--inst-danger)' }}>*</span>
                   </label>
                   <input
                     type="password"
@@ -1025,14 +1010,14 @@ const Login = () => {
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
-                      background: 'var(--clay-surface-inset)',
-                      border: 'none',
-                      color: 'var(--clay-text)',
+                      borderRadius: 'var(--inst-radius-sm)',
+                      background: 'var(--inst-surface)',
+                      border: '1px solid var(--inst-border-strong)',
+                      color: 'var(--inst-text)',
                       fontSize: '0.875rem',
                       fontWeight: 600,
                       outline: 'none',
-                      boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+                      boxShadow: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -1045,14 +1030,14 @@ const Login = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
+                      background: 'var(--inst-ink)',
                       color: '#FFF',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: forgotModal.loading ? 'not-allowed' : 'pointer',
-                      boxShadow: '4px 4px 10px rgba(99, 102, 241, 0.35)',
+                      boxShadow: 'none',
                       opacity: forgotModal.loading ? 0.7 : 1
                     }}
                   >
@@ -1063,14 +1048,14 @@ const Login = () => {
                     onClick={closeForgotModal}
                     style={{
                       padding: '0.75rem 1rem',
-                      borderRadius: '14px',
+                      borderRadius: 'var(--inst-radius-sm)',
                       border: 'none',
-                      background: 'var(--clay-surface)',
-                      color: 'var(--clay-muted)',
+                      background: 'var(--inst-surface)',
+                      color: 'var(--inst-muted)',
                       fontSize: '0.875rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.8)'
+                      border: '1px solid var(--inst-border-strong)'
                     }}
                   >
                     Cancel
