@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 
 process.env.JWT_SECRET = 'test-secret-forgot-password-flow';
 process.env.NODE_ENV = 'production';
+process.env.MOCK_EMAIL_FOR_TESTS = 'true';
 
 // In-memory mock database state
 const mockUsers = {
