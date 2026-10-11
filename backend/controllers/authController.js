@@ -2,7 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { blacklistToken } = require("../middleware/auth");
-const { sendOtpSms } = require("../services/smsService");
+const emailService = require("../services/emailService");
 
 // In-memory OTP store: userId -> { userId, otp, expiresAt, attempts, mobile, identifier }
 const otpStore = new Map();
@@ -347,17 +347,25 @@ exports.requestOtp = async (req, res) => {
       identifier: cleanIdentifier
     });
 
-    // Send via SMS Service abstraction
-    await sendOtpSms(cleanMobile, otp);
+    // Send via Email Service (Nodemailer Gmail SMTP) to registered user.email
+    const emailResult = await emailService.sendOtpEmail(user.email, otp);
+    if (!emailResult || !emailResult.success) {
+      // Invalidate stored OTP if email failed to send
+      otpStore.delete(user.id);
+      return res.status(500).json({
+        success: false,
+        message: "Could not send OTP, please try again later"
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully to your registered mobile number",
+      message: "OTP sent successfully to your registered email",
       expiresIn: 300
     });
   } catch (error) {
     console.error("Request OTP Error:", error);
-    return res.status(500).json({ success: false, message: "Server error generating OTP" });
+    return res.status(500).json({ success: false, message: "Could not send OTP, please try again later" });
   }
 };
 

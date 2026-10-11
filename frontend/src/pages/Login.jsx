@@ -180,7 +180,7 @@ const Login = () => {
         ...prev,
         loading: false,
         step: 2,
-        otpSuccessMsg: data.message || 'OTP sent successfully to your registered mobile number.',
+        otpSuccessMsg: data.message || 'OTP sent successfully to your registered email.',
         error: ''
       }));
     } catch (err) {
@@ -858,7 +858,7 @@ const Login = () => {
                       opacity: forgotModal.loading ? 0.7 : 1
                     }}
                   >
-                    {forgotModal.loading ? 'Sending OTP...' : 'Send OTP via SMS'}
+                    {forgotModal.loading ? 'Sending OTP...' : 'Send OTP'}
                   </button>
                   <button
                     type="button"

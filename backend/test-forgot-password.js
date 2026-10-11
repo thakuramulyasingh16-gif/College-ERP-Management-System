@@ -142,6 +142,7 @@ async function runTests() {
     await authController.requestOtp(req, res);
     assert.strictEqual(res.statusCode, 200);
     assert.strictEqual(res.jsonData.success, true);
+    assert.strictEqual(res.jsonData.message, 'OTP sent successfully to your registered email');
     const record = authController._getOtpForTesting(3);
     assert(record, 'Student OTP record should exist in store');
     assert.strictEqual(record.otp.length, 6);
@@ -283,7 +284,42 @@ async function runTests() {
     console.log('  PASS: Test 14 - OTP Verify Rate Limiter enforces max 5 attempts per window');
   }
 
-  console.log('\n=== ALL 14 BACKEND TESTS PASSED WITH 100% SUCCESS ===\n');
+  // TEST 15: Email sending failure handled gracefully (500 without leaking SMTP details)
+  {
+    const emailService = require('./services/emailService');
+    const originalSendOtpEmail = emailService.sendOtpEmail;
+
+    // Simulate SMTP failure
+    emailService.sendOtpEmail = async () => {
+      return { success: false, error: 'SMTPConnectionError: 535 5.7.8 Username and Password not accepted' };
+    };
+
+    authController._clearOtpStoreForTesting();
+    const { req, res } = mockReqRes({ identifier: 'student@college.com', mobile: '9876543212' });
+    await authController.requestOtp(req, res);
+
+    assert.strictEqual(res.statusCode, 500);
+    assert.strictEqual(res.jsonData.success, false);
+    assert.strictEqual(res.jsonData.message, 'Could not send OTP, please try again later');
+    assert(!JSON.stringify(res.jsonData).includes('SMTPConnectionError'), 'Must not leak SMTP details to client');
+    assert.strictEqual(authController._getOtpForTesting(3), undefined, 'Failed send must delete pending OTP from store');
+
+    // Restore original function
+    emailService.sendOtpEmail = originalSendOtpEmail;
+    console.log('  PASS: Test 15 - Email failure returns generic 500 error without leaking SMTP details');
+  }
+
+  // TEST 16: Verify HTML Email Template contains OTP, 5-minute expiry, and security advisory
+  {
+    const { generateOtpEmailTemplate } = require('./services/emailService');
+    const html = generateOtpEmailTemplate('654321');
+    assert(html.includes('654321'), 'HTML template must contain OTP');
+    assert(html.includes('5 minutes'), 'HTML template must mention 5 minutes validity');
+    assert(html.includes('never share this OTP'), 'HTML template must advise not to share');
+    console.log('  PASS: Test 16 - HTML email template includes OTP, 5-min expiry, and confidentiality notice');
+  }
+
+  console.log('\n=== ALL 16 BACKEND TESTS PASSED WITH 100% SUCCESS ===\n');
 }
 
 runTests().catch(err => {
