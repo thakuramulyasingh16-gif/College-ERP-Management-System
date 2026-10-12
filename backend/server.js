@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
 const erpRoutes = require('./routes/erpRoutes');
 const uploadAuth = require('./middleware/uploadAuth');
+const { tokenBucketLimiter } = require('./middleware/tokenBucketLimiter');
 const db = require('./config/db');
 const path = require('path');
 
@@ -116,6 +117,9 @@ app.use('/api', (req, res, next) => {
   res.set('Expires', '0');
   next();
 });
+
+// Global API abuse protection: token-bucket rate limiter for all /api routes
+app.use('/api', tokenBucketLimiter);
 
 // Non-sensitive request logging
 if (process.env.NODE_ENV !== 'production') {
