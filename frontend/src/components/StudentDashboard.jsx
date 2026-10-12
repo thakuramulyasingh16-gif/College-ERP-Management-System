@@ -365,7 +365,7 @@ const StudentDashboard = ({ activeTab }) => {
       <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20 overflow-hidden relative">
+            <div className="w-16 h-16 bg-[var(--inst-ink)] rounded-[var(--inst-radius-sm)] flex items-center justify-center text-white font-black text-2xl shadow-[var(--inst-shadow-sm)] overflow-hidden relative">
               <span className="select-none">{studentProfile?.name?.charAt(0) || 'S'}</span>
               {studentProfile?.profile_image && (
                 <img 
@@ -377,7 +377,7 @@ const StudentDashboard = ({ activeTab }) => {
               )}
             </div>
             <div>
-              <h2 className="text-xl font-black text-slate-800 uppercase">{studentProfile?.name}</h2>
+              <h2 className="text-xl font-bold text-slate-800 uppercase">{studentProfile?.name}</h2>
               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{studentProfile?.department} • {studentProfile?.course}</p>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <span className="text-blue-600 font-black text-sm bg-blue-50 px-3 py-0.5 rounded-full inline-block">
@@ -414,13 +414,13 @@ const StudentDashboard = ({ activeTab }) => {
 
       {/* One-time / Unlocked Roll Number Form */}
       {showAddForm && (
-        <div className="bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-xl mb-6 relative overflow-hidden">
+        <div className="bg-[var(--inst-surface)] p-6 md:p-8 rounded-[var(--inst-radius)] border border-[var(--inst-border)] shadow-[var(--inst-shadow-sm)] mb-6 relative overflow-hidden">
           <div className="max-w-xl">
-            <div className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest mb-1">
+            <div className="flex items-center gap-2 text-[var(--inst-ink)] font-bold text-xs uppercase tracking-widest mb-1">
               <GraduationCap size={18} />
               <span>University Roll Number</span>
             </div>
-            <h3 className="text-xl font-black text-slate-800 mb-2">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
               {currentRoll ? "Update Your Roll Number" : "Add Your Roll Number"}
             </h3>
             <p className="text-slate-500 text-xs font-semibold mb-4 leading-relaxed">
@@ -445,7 +445,7 @@ const StudentDashboard = ({ activeTab }) => {
               <button
                 type="submit"
                 disabled={rollNoSubmitting || !rollNoInput.trim()}
-                className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 whitespace-nowrap"
+                className="px-6 py-3.5 bg-[var(--inst-ink)] hover:bg-[var(--inst-ink-700)] text-white rounded-[var(--inst-radius-sm)] font-semibold text-sm transition-all shadow-[var(--inst-shadow-sm)] disabled:opacity-50 whitespace-nowrap"
               >
                 {rollNoSubmitting ? 'Saving...' : 'Save Roll Number'}
               </button>
@@ -1006,15 +1006,52 @@ const StudentDashboard = ({ activeTab }) => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, color }) => {
-  const colors = { blue: 'bg-blue-50 text-blue-600 border-blue-100', indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100' };
+const StatCard = ({ title, value, icon: Icon }) => {
   return (
-    <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${colors[color]} border`}>
-        {Icon ? <Icon size={28} strokeWidth={2.5}  /> : <div className="text-xs font-black">{title?.charAt(0)}</div>}
+    <div style={{
+      background: 'var(--inst-surface)',
+      padding: '1.75rem',
+      borderRadius: 'var(--inst-radius)',
+      border: '1px solid var(--inst-border)',
+      boxShadow: 'var(--inst-shadow-sm)',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+    }}>
+      <div style={{
+        width: '46px',
+        height: '46px',
+        borderRadius: 'var(--inst-radius-sm)',
+        background: 'var(--inst-ink-tint)',
+        border: '1px solid var(--inst-border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.25rem',
+        color: 'var(--inst-ink)',
+      }}>
+        {Icon ? <Icon size={24} strokeWidth={2.2} /> : <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{title?.charAt(0)}</div>}
       </div>
-      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-      <p className="text-3xl md:text-4xl font-black text-slate-900 mt-2 tracking-tighter">{value}</p>
+      <p style={{
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: 'var(--inst-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        fontFamily: 'var(--font-body)',
+        margin: 0,
+      }}>
+        {title}
+      </p>
+      <p style={{
+        fontSize: '2rem',
+        fontWeight: 600,
+        color: 'var(--inst-ink)',
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '-0.02em',
+        margin: '0.35rem 0 0 0',
+        lineHeight: 1.1,
+      }}>
+        {value}
+      </p>
     </div>
   );
 };

@@ -19,17 +19,18 @@ const ProtectedRoute = ({ children }) => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%)',
+        background: 'var(--inst-paper)',
         flexDirection: 'column',
         gap: '1rem',
       }}>
         <div className="clay-spinner" />
         <p style={{
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: '0.75rem',
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
-          color: 'var(--clay-muted)',
+          color: 'var(--inst-muted)',
+          fontFamily: 'var(--font-body)',
         }}>
           Authenticating...
         </p>
@@ -58,17 +59,18 @@ const PublicRoute = ({ children }) => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%)',
+        background: 'var(--inst-paper)',
         flexDirection: 'column',
         gap: '1rem',
       }}>
         <div className="clay-spinner" />
         <p style={{
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: '0.75rem',
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
-          color: 'var(--clay-muted)',
+          color: 'var(--inst-muted)',
+          fontFamily: 'var(--font-body)',
         }}>
           Loading...
         </p>

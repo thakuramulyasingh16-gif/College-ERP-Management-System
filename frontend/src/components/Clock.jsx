@@ -255,10 +255,10 @@ const Clock = () => {
         ...stylePosition,
         width: `${widthPx}px`,
         padding: `${padV}px ${padH}px`,
-        background: 'var(--clay-surface, #EEF2FB)',
-        borderRadius: `${borderRadius}px`,
-        boxShadow: '4px 4px 10px rgba(163, 177, 198, 0.5), -4px -4px 10px rgba(255, 255, 255, 0.85)',
-        border: '1px solid rgba(255, 255, 255, 0.7)',
+        background: 'var(--inst-surface, #FFFFFF)',
+        borderRadius: `${Math.max(6, Math.round(8 * scale))}px`,
+        boxShadow: 'var(--inst-shadow, 0 1px 2px rgba(21, 42, 74, 0.06), 0 8px 24px -12px rgba(21, 42, 74, 0.18))',
+        border: '1px solid var(--inst-border, #E4DFD2)',
         zIndex: 50,
         userSelect: 'none',
         WebkitUserSelect: 'none',
@@ -281,13 +281,14 @@ const Clock = () => {
           alignItems: 'center',
           gap: `${Math.round(4 * scale)}px`,
         }}>
-          <ClockIcon size={Math.round(10 * scale)} className="text-indigo-600 flex-shrink-0" />
+          <ClockIcon size={Math.round(10 * scale)} style={{ color: 'var(--inst-ink, #152A4A)' }} className="flex-shrink-0" />
           <span style={{
             fontSize: `${Math.max(7.5, 8.5 * scale)}px`,
-            fontWeight: 800,
+            fontWeight: 700,
             textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            color: 'var(--clay-primary, #6366F1)',
+            letterSpacing: '0.08em',
+            color: 'var(--inst-ink, #152A4A)',
+            fontFamily: 'var(--font-body)',
             lineHeight: 1,
           }}>
             System Time
@@ -308,20 +309,20 @@ const Clock = () => {
             style={{
               width: `${Math.round(16 * scale)}px`,
               height: `${Math.round(16 * scale)}px`,
-              borderRadius: `${Math.round(5 * scale)}px`,
-              background: 'rgba(255, 255, 255, 0.8)',
-              border: 'none',
-              boxShadow: 'inset 1px 1px 2px rgba(163, 177, 198, 0.4), inset -1px -1px 2px rgba(255, 255, 255, 0.9)',
+              borderRadius: `${Math.round(4 * scale)}px`,
+              background: 'var(--inst-paper, #F7F4EE)',
+              border: '1px solid var(--inst-border, #E4DFD2)',
+              boxShadow: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: scale <= MIN_SCALE ? 'not-allowed' : 'pointer',
-              opacity: scale <= MIN_SCALE ? 0.4 : 0.85,
-              color: 'var(--clay-text, #2D3748)',
+              opacity: scale <= MIN_SCALE ? 0.4 : 0.9,
+              color: 'var(--inst-ink, #152A4A)',
               padding: 0,
             }}
           >
-            <Minus size={Math.round(9 * scale)} strokeWidth={3} />
+            <Minus size={Math.round(9 * scale)} strokeWidth={2.5} />
           </button>
 
           <button
@@ -332,20 +333,20 @@ const Clock = () => {
             style={{
               width: `${Math.round(16 * scale)}px`,
               height: `${Math.round(16 * scale)}px`,
-              borderRadius: `${Math.round(5 * scale)}px`,
-              background: 'rgba(255, 255, 255, 0.8)',
-              border: 'none',
-              boxShadow: 'inset 1px 1px 2px rgba(163, 177, 198, 0.4), inset -1px -1px 2px rgba(255, 255, 255, 0.9)',
+              borderRadius: `${Math.round(4 * scale)}px`,
+              background: 'var(--inst-paper, #F7F4EE)',
+              border: '1px solid var(--inst-border, #E4DFD2)',
+              boxShadow: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: scale >= MAX_SCALE ? 'not-allowed' : 'pointer',
-              opacity: scale >= MAX_SCALE ? 0.4 : 0.85,
-              color: 'var(--clay-text, #2D3748)',
+              opacity: scale >= MAX_SCALE ? 0.4 : 0.9,
+              color: 'var(--inst-ink, #152A4A)',
               padding: 0,
             }}
           >
-            <Plus size={Math.round(9 * scale)} strokeWidth={3} />
+            <Plus size={Math.round(9 * scale)} strokeWidth={2.5} />
           </button>
 
           <button
@@ -355,20 +356,20 @@ const Clock = () => {
             style={{
               width: `${Math.round(16 * scale)}px`,
               height: `${Math.round(16 * scale)}px`,
-              borderRadius: `${Math.round(5 * scale)}px`,
-              background: 'rgba(255, 255, 255, 0.8)',
-              border: 'none',
-              boxShadow: 'inset 1px 1px 2px rgba(163, 177, 198, 0.4), inset -1px -1px 2px rgba(255, 255, 255, 0.9)',
+              borderRadius: `${Math.round(4 * scale)}px`,
+              background: 'var(--inst-paper, #F7F4EE)',
+              border: '1px solid var(--inst-border, #E4DFD2)',
+              boxShadow: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               opacity: 0.85,
-              color: 'var(--clay-muted, #718096)',
+              color: 'var(--inst-muted, #64666D)',
               padding: 0,
             }}
           >
-            <RotateCcw size={Math.round(8 * scale)} strokeWidth={2.5} />
+            <RotateCcw size={Math.round(8 * scale)} strokeWidth={2.2} />
           </button>
         </div>
       </div>
@@ -377,9 +378,9 @@ const Clock = () => {
       <div style={{
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
         fontSize: `${(0.98 * scale).toFixed(3)}rem`,
-        fontWeight: 900,
+        fontWeight: 700,
         letterSpacing: '-0.02em',
-        color: 'var(--clay-text, #2D3748)',
+        color: 'var(--inst-ink, #152A4A)',
         lineHeight: 1.15,
         textAlign: 'right',
       }}>
@@ -395,9 +396,10 @@ const Clock = () => {
       }}>
         <span style={{
           fontSize: `${Math.max(7.5, 9 * scale)}px`,
-          fontWeight: 700,
-          color: 'var(--clay-muted, #718096)',
-          letterSpacing: '0.08em',
+          fontWeight: 600,
+          color: 'var(--inst-muted, #64666D)',
+          fontFamily: 'var(--font-body)',
+          letterSpacing: '0.06em',
           lineHeight: 1,
         }}>
           {formatDate(date)}
@@ -429,7 +431,7 @@ const Clock = () => {
             stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
-            className="text-slate-400 hover:text-slate-600"
+            style={{ color: 'var(--inst-muted, #64666D)' }}
           >
             <line x1="8" y1="2" x2="2" y2="8" />
             <line x1="8" y1="5" x2="5" y2="8" />

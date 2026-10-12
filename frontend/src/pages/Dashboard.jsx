@@ -5,14 +5,14 @@ import AdminDashboard from '../components/AdminDashboard';
 import TeacherDashboard from '../components/TeacherDashboard';
 import StudentDashboard from '../components/StudentDashboard';
 import Clock from '../components/Clock';
-import { Menu, GraduationCap, ShieldCheck } from 'lucide-react';
+import { Menu, GraduationCap } from 'lucide-react';
 import api from '../api';
 import { getMediaUrl } from '../utils/api';
 
 const roleConfig = {
-  admin:   { label: 'Admin',   color: '#6366F1', bg: '#EEF2FF' },
-  teacher: { label: 'Teacher', color: '#8B5CF6', bg: '#F5F3FF' },
-  student: { label: 'Student', color: '#10B981', bg: '#ECFDF5' },
+  admin:   { label: 'Admin',   color: 'var(--inst-ink)',     bg: 'var(--inst-ink-tint)',     border: '1px solid var(--inst-border)' },
+  teacher: { label: 'Teacher', color: 'var(--inst-gold)',    bg: 'var(--inst-gold-tint)',    border: '1px solid rgba(173, 127, 46, 0.3)' },
+  student: { label: 'Student', color: 'var(--inst-success)', bg: 'var(--inst-success-tint)', border: '1px solid rgba(63, 122, 82, 0.3)' },
 };
 
 const Dashboard = () => {
@@ -44,17 +44,18 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%)',
+        background: 'var(--inst-paper)',
         flexDirection: 'column',
         gap: '1rem',
       }}>
         <div className="clay-spinner" />
         <p style={{
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: '0.75rem',
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
-          color: 'var(--clay-muted)',
+          color: 'var(--inst-muted)',
+          fontFamily: 'var(--font-body)',
         }}>
           Authenticating...
         </p>
@@ -78,7 +79,7 @@ const Dashboard = () => {
 
       {/* Main Area: automatically occupies the remaining screen width */}
       <div className="erp-main-area">
-        {/* Claymorphism Navbar / Header */}
+        {/* Institutional Navbar / Top Header */}
         <header className="erp-header">
           {/* Left: Sidebar Toggle + Portal Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -87,32 +88,34 @@ const Dashboard = () => {
               className="erp-header-btn"
               title="Toggle Menu"
             >
-              <Menu size={19} strokeWidth={2.5} />
+              <Menu size={19} strokeWidth={2.2} />
             </button>
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                 <h2 style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 900,
-                  color: 'var(--clay-text)',
+                  fontSize: '1.0625rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-display)',
+                  color: 'var(--inst-ink)',
                   lineHeight: 1.2,
                   margin: 0,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: '-0.01em',
                 }}>
                   City Group of Colleges
                 </h2>
-                {/* Role Pill with Inset Clay Depth */}
+                {/* Role Pill */}
                 <span style={{
                   padding: '3px 10px',
                   background: rc.bg,
                   color: rc.color,
-                  borderRadius: '9999px',
-                  boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
+                  border: rc.border,
+                  borderRadius: 'var(--inst-radius-sm)',
                   fontSize: '0.625rem',
-                  fontWeight: 800,
+                  fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.06em',
+                  fontFamily: 'var(--font-body)',
                 }}>
                   {rc.label} Portal
                 </span>
@@ -125,8 +128,9 @@ const Dashboard = () => {
             <div className="hidden sm:block" style={{ textAlign: 'right' }}>
               <p style={{
                 fontSize: '0.8125rem',
-                fontWeight: 700,
-                color: 'var(--clay-text)',
+                fontWeight: 600,
+                color: 'var(--inst-ink)',
+                fontFamily: 'var(--font-body)',
                 margin: 0,
                 lineHeight: 1.2,
               }}>
@@ -134,23 +138,25 @@ const Dashboard = () => {
               </p>
               <p style={{
                 fontSize: '0.6875rem',
-                color: 'var(--clay-muted)',
+                color: 'var(--inst-muted)',
+                fontFamily: 'var(--font-body)',
                 margin: '2px 0 0 0',
-                fontWeight: 600,
-                letterSpacing: '0.02em',
+                fontWeight: 500,
+                letterSpacing: '0.01em',
               }}>
                 {user?.email}
               </p>
             </div>
 
-            {/* Profile Avatar inside Soft Clay Container (Functionality 100% Preserved) */}
+            {/* Profile Avatar (Functionality 100% Preserved) */}
             <label
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '14px',
-                background: 'var(--clay-surface)',
-                boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
+                width: '40px',
+                height: '40px',
+                borderRadius: 'var(--inst-radius-sm)',
+                background: 'var(--inst-surface)',
+                border: '1px solid var(--inst-border)',
+                boxShadow: 'var(--inst-shadow-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -158,7 +164,7 @@ const Dashboard = () => {
                 cursor: 'pointer',
                 position: 'relative',
                 flexShrink: 0,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.15s ease',
               }}
               title="Click to change profile picture"
             >
@@ -194,7 +200,7 @@ const Dashboard = () => {
                 />
               ) : null}
               {(!user?.profile_image) && (
-                <GraduationCap size={20} style={{ color: 'var(--clay-primary)' }} />
+                <GraduationCap size={20} style={{ color: 'var(--inst-ink)' }} />
               )}
             </label>
           </div>

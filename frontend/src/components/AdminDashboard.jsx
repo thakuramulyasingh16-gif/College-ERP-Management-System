@@ -1774,25 +1774,106 @@ const AdminDashboard = ({ activeTab, setActiveTab, user }) => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, color }) => {
-  const colors = { blue: 'bg-blue-50 text-blue-600 border-blue-100', indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100', purple: 'bg-purple-50 text-purple-600 border-purple-100', orange: 'bg-orange-50 text-orange-600 border-orange-100' };
+const StatCard = ({ title, value, icon: Icon }) => {
   return (
-    <div className="bg-white p-8 rounded-3xl border border-slate-50 shadow-xl hover:scale-105 transition-transform duration-300">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${colors[color]} border`}>
-        {Icon ? <Icon size={28} strokeWidth={2.5}  /> : <div className="text-xs font-black">{title?.charAt(0)}</div>}
+    <div style={{
+      background: 'var(--inst-surface)',
+      padding: '1.75rem',
+      borderRadius: 'var(--inst-radius)',
+      border: '1px solid var(--inst-border)',
+      boxShadow: 'var(--inst-shadow-sm)',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+    }}>
+      <div style={{
+        width: '46px',
+        height: '46px',
+        borderRadius: 'var(--inst-radius-sm)',
+        background: 'var(--inst-ink-tint)',
+        border: '1px solid var(--inst-border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.25rem',
+        color: 'var(--inst-ink)',
+      }}>
+        {Icon ? <Icon size={24} strokeWidth={2.2} /> : <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{title?.charAt(0)}</div>}
       </div>
-      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-      <p className="text-4xl font-black text-slate-900 mt-2 tracking-tighter">{value}</p>
+      <p style={{
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: 'var(--inst-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        fontFamily: 'var(--font-body)',
+        margin: 0,
+      }}>
+        {title}
+      </p>
+      <p style={{
+        fontSize: '2rem',
+        fontWeight: 600,
+        color: 'var(--inst-ink)',
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '-0.02em',
+        margin: '0.35rem 0 0 0',
+        lineHeight: 1.1,
+      }}>
+        {value}
+      </p>
     </div>
   );
 };
 
-const ActionButton = ({ label, icon: Icon, onClick, color }) => {
-  const colors = { blue: 'bg-blue-600 hover:bg-blue-700', indigo: 'bg-indigo-600 hover:bg-indigo-700', purple: 'bg-purple-600 hover:bg-purple-700', orange: 'bg-orange-600 hover:bg-orange-700' };
+const ActionButton = ({ label, icon: Icon, onClick }) => {
   return (
-    <button onClick={onClick} className={`flex flex-col items-center gap-3 p-6 rounded-2xl text-white font-black text-[10px] uppercase transition-all hover:-translate-y-1 shadow-lg ${colors[color]}`}>
-      {Icon ? <Icon size={24} strokeWidth={3}  /> : <div className="text-lg font-black">{label?.charAt(0)}</div>}
-      {label}
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '1.25rem 1rem',
+        borderRadius: 'var(--inst-radius-sm)',
+        background: 'var(--inst-surface)',
+        border: '1px solid var(--inst-border)',
+        boxShadow: 'var(--inst-shadow-sm)',
+        color: 'var(--inst-ink)',
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'var(--inst-ink-tint)';
+        e.currentTarget.style.borderColor = 'var(--inst-border-strong)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'var(--inst-surface)';
+        e.currentTarget.style.borderColor = 'var(--inst-border)';
+      }}
+    >
+      <div style={{
+        width: '38px',
+        height: '38px',
+        borderRadius: 'var(--inst-radius-sm)',
+        background: 'var(--inst-ink-tint)',
+        border: '1px solid var(--inst-border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--inst-ink)',
+      }}>
+        {Icon ? <Icon size={20} strokeWidth={2.2} /> : <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{label?.charAt(0)}</div>}
+      </div>
+      <span style={{
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        fontFamily: 'var(--font-body)',
+        textAlign: 'center',
+      }}>
+        {label}
+      </span>
     </button>
   );
 };
