@@ -1,96 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ===============================================================
-   CENTRALIZED CLAYMORPHISM DESIGN SYSTEM (ERP DESIGN TOKENS)
+   INSTITUTIONAL DESIGN SYSTEM (ERP CENTRAL DESIGN TOKENS)
    =============================================================== */
 :root {
-  /* ===============================================================
-     INSTITUTIONAL DESIGN TOKENS (new visual identity, rolling out
-     screen by screen — currently used on Login / Forgot Password)
-     =============================================================== */
-  --inst-ink:            #152A4A;   /* primary navy — headings, primary actions */
-  --inst-ink-700:        #1E3A63;
-  --inst-ink-tint:       #EEF2F7;   /* pale navy tint for icon wells */
-  --inst-paper:          #F7F4EE;   /* warm paper background, not stark white */
-  --inst-surface:        #FFFFFF;
-  --inst-border:         #E4DFD2;
-  --inst-border-strong:  #D8D1BE;
-  --inst-text:           #22262E;
-  --inst-muted:          #64666D;
-  --inst-gold:           #AD7F2E;   /* accent — focus rings, links, highlights */
-  --inst-gold-tint:      #F3E9D4;
-  --inst-success:        #3F7A52;
-  --inst-success-tint:   #EAF3EC;
-  --inst-danger:         #9C3B32;
-  --inst-danger-tint:    #FBECEA;
+  /* Institutional Palette (Deep Navy, Warm Paper, Muted Gold Accent) */
+  --inst-ink:            #152A4A;   /* Primary navy — headings, primary actions */
+  --inst-ink-700:        #1E3A63;   /* Primary hover navy */
+  --inst-ink-tint:       #EEF2F7;   /* Pale navy tint for icon wells, hover states */
+  --inst-paper:          #F7F4EE;   /* Warm paper background canvas */
+  --inst-surface:        #FFFFFF;   /* Clean white component surfaces */
+  --inst-border:         #E4DFD2;   /* Subtle warm border */
+  --inst-border-strong:  #D8D1BE;   /* Stronger border for inputs/focus */
+  --inst-text:           #22262E;   /* Body text */
+  --inst-muted:          #64666D;   /* Secondary/muted labels */
+  --inst-gold:           #AD7F2E;   /* Muted gold accent — highlights, links */
+  --inst-gold-tint:      #F3E9D4;   /* Pale gold tint */
+  --inst-success:        #3F7A52;   /* Muted institutional success */
+  --inst-success-tint:   #EAF3EC;   /* Pale success tint */
+  --inst-danger:         #9C3B32;   /* Muted institutional danger */
+  --inst-danger-tint:    #FBECEA;   /* Pale danger tint */
+
+  /* Flat institutional radii (clean 8px - 14px, no soft bubble curves) */
   --inst-radius-sm:      8px;
   --inst-radius:         10px;
   --inst-radius-lg:      14px;
+
+  /* Subtle institutional elevation */
   --inst-shadow:         0 1px 2px rgba(21, 42, 74, 0.06), 0 8px 24px -12px rgba(21, 42, 74, 0.18);
   --inst-shadow-sm:      0 1px 2px rgba(21, 42, 74, 0.08);
+
+  /* Typography tokens */
   --font-display:        'Fraunces', Georgia, serif;
   --font-body:           'Source Sans 3', 'Segoe UI', sans-serif;
 
-  /* Pastel clay backgrounds */
-  --clay-bg-start:       #E8ECFF;
-  --clay-bg-end:         #F5F3FF;
-  --clay-bg-gradient:    linear-gradient(135deg, #E8ECFF 0%, #F5F3FF 100%);
-  --clay-surface:        #EEF2FB;
-  --clay-surface-card:   #EEF2FB;
-  --clay-surface-soft:   #E5EAF5;
-  --clay-surface-inset:  #E5EBF6;
-
-  /* Accent & Brand colors */
-  --clay-primary:        #6366F1;
-  --clay-primary-hover:  #4F46E5;
-  --clay-primary-pastel: #EEF2FF;
-  --clay-secondary:      #8B5CF6;
-  --clay-accent:         #6366F1;
-  --clay-text:           #2D3748;
-  --clay-text-muted:     #718096;
-  --clay-success:        #10B981;
-  --clay-warning:        #F59E0B;
-  --clay-danger:         #EF4444;
-
-  /* Clay Radii (24px - 32px range for cards/containers) */
-  --clay-radius:         28px;
-  --clay-radius-card:    28px;
+  /* Legacy aliases mapping old clay/neumorphic tokens directly to institutional system */
+  --clay-bg-start:       var(--inst-paper);
+  --clay-bg-end:         var(--inst-paper);
+  --clay-bg-gradient:    var(--inst-paper);
+  --clay-surface:        var(--inst-surface);
+  --clay-surface-card:   var(--inst-surface);
+  --clay-surface-soft:   var(--inst-ink-tint);
+  --clay-surface-inset:  var(--inst-surface);
+  --clay-primary:        var(--inst-ink);
+  --clay-primary-hover:  var(--inst-ink-700);
+  --clay-primary-pastel: var(--inst-ink-tint);
+  --clay-secondary:      var(--inst-gold);
+  --clay-accent:         var(--inst-gold);
+  --clay-text:           var(--inst-text);
+  --clay-text-muted:     var(--inst-muted);
+  --clay-success:        var(--inst-success);
+  --clay-warning:        var(--inst-gold);
+  --clay-danger:         var(--inst-danger);
+  --clay-radius:         var(--inst-radius);
+  --clay-radius-card:    var(--inst-radius);
   --clay-radius-pill:    9999px;
-  --clay-radius-sm:      16px;
-  --clay-radius-md:      20px;
-  --clay-radius-lg:      32px;
+  --clay-radius-sm:      var(--inst-radius-sm);
+  --clay-radius-md:      var(--inst-radius);
+  --clay-radius-lg:      var(--inst-radius-lg);
+  --clay-shadow:         var(--inst-shadow-sm);
+  --clay-shadow-sm:      var(--inst-shadow-sm);
+  --clay-shadow-lg:      var(--inst-shadow);
+  --clay-inset:          none;
+  --clay-inset-sm:       none;
+  --clay-inset-focus:    0 0 0 3px rgba(21, 42, 74, 0.1);
+  --clay-btn-shadow:     var(--inst-shadow-sm);
+  --clay-btn-primary-shadow: 0 1px 2px rgba(21, 42, 74, 0.12);
+  --clay-btn-active:     none;
 
-  /* Clay Shadows as specified in design requirements */
-  /* Core shadow effect (soft "clay" look) */
-  --clay-shadow:         8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8);
-  --clay-shadow-sm:      5px 5px 10px rgba(163, 177, 198, 0.5), -5px -5px 10px rgba(255, 255, 255, 0.75);
-  --clay-shadow-lg:      12px 12px 24px rgba(163, 177, 198, 0.6), -12px -12px 24px rgba(255, 255, 255, 0.85);
-
-  /* Inset shadow (pressed in) */
-  --clay-inset:          inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
-  --clay-inset-sm:       inset 2px 2px 5px rgba(163, 177, 198, 0.45), inset -2px -2px 5px rgba(255, 255, 255, 0.65);
-  --clay-inset-focus:    inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7), 0 0 0 3px rgba(99, 102, 241, 0.25);
-
-  /* Buttons raised look at rest */
-  --clay-btn-shadow:     6px 6px 12px rgba(163, 177, 198, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.8);
-  --clay-btn-primary-shadow: 6px 6px 14px rgba(99, 102, 241, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.35);
-  --clay-btn-active:     inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
-
-  /* Aliases for ERP backward compatibility */
-  --erp-bg:              var(--clay-bg-gradient);
-  --erp-surface:         var(--clay-surface);
-  --erp-surface-soft:    var(--clay-surface-soft);
-  --erp-primary:         var(--clay-primary);
-  --erp-secondary:       var(--clay-secondary);
-  --erp-text:            var(--clay-text);
-  --erp-muted:           var(--clay-text-muted);
-  --erp-radius:          var(--clay-radius);
-  --erp-radius-lg:       var(--clay-radius-lg);
-  --erp-radius-sm:       var(--clay-radius-sm);
-  --erp-shadow:          var(--clay-shadow);
-  --erp-clay-card:       var(--clay-shadow);
-  --erp-clay-btn:        var(--clay-btn-primary-shadow);
+  /* ERP backward compatibility */
+  --erp-bg:              var(--inst-paper);
+  --erp-surface:         var(--inst-surface);
+  --erp-surface-soft:    var(--inst-ink-tint);
+  --erp-primary:         var(--inst-ink);
+  --erp-secondary:       var(--inst-gold);
+  --erp-text:            var(--inst-text);
+  --erp-muted:           var(--inst-muted);
+  --erp-radius:          var(--inst-radius);
+  --erp-radius-lg:       var(--inst-radius-lg);
+  --erp-radius-sm:       var(--inst-radius-sm);
+  --erp-shadow:          var(--inst-shadow-sm);
+  --erp-clay-card:       var(--inst-shadow-sm);
+  --erp-clay-btn:        0 1px 2px rgba(21, 42, 74, 0.12);
 }
 
 /* ===============================================================
@@ -103,38 +95,47 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--clay-bg-gradient) !important;
-  background-attachment: fixed !important;
-  color: var(--clay-text);
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--inst-paper) !important;
+  background-color: var(--inst-paper) !important;
+  color: var(--inst-text);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
-/* Custom Minimal Scrollbar */
+/* Institutional Headings (Fraunces serif) */
+h1, h2, h3, h4, h5, h6,
+.font-display {
+  font-family: var(--font-display) !important;
+  color: var(--inst-ink) !important;
+  letter-spacing: -0.01em;
+  font-weight: 600 !important;
+}
+
+/* Minimal Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(163, 177, 198, 0.45);
-  border-radius: 999px;
+  background: var(--inst-border-strong);
+  border-radius: var(--inst-radius-sm);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.45);
+  background: var(--inst-muted);
 }
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(163, 177, 198, 0.45) transparent;
+  scrollbar-color: var(--inst-border-strong) transparent;
 }
 
 /* Animations */
 @keyframes erpFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes erpSpin {
@@ -142,31 +143,30 @@ html, body {
 }
 
 /* ===============================================================
-   LAYOUT ARCHITECTURE (SIDEBAR | MAIN AREA)
+   LAYOUT ARCHITECTURE (SIDEBAR | MAIN AREA | HEADER)
    =============================================================== */
 .erp-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: var(--clay-bg-gradient) !important;
-  background-attachment: fixed !important;
+  background: var(--inst-paper) !important;
 }
 
-/* Desktop Sidebar: True flex column */
+/* Desktop Sidebar */
 @media (min-width: 1024px) {
   .erp-sidebar {
     position: relative !important;
     height: 100vh;
     flex-shrink: 0;
-    background: var(--clay-surface) !important;
-    border-right: none !important;
-    box-shadow: 4px 0 16px rgba(163, 177, 198, 0.3) !important;
+    background: var(--inst-surface) !important;
+    border-right: 1px solid var(--inst-border) !important;
+    box-shadow: none !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 30;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .erp-sidebar.sidebar-open {
     width: 260px;
@@ -176,7 +176,7 @@ html, body {
   }
 }
 
-/* Mobile Sidebar: Drawer overlay */
+/* Mobile Sidebar */
 @media (max-width: 1023px) {
   .erp-sidebar {
     position: fixed !important;
@@ -187,14 +187,14 @@ html, body {
     height: 100% !important;
     height: 100dvh !important;
     max-height: 100dvh !important;
-    background: var(--clay-surface) !important;
-    border-right: none !important;
-    box-shadow: 12px 0 32px rgba(163, 177, 198, 0.45) !important;
+    background: var(--inst-surface) !important;
+    border-right: 1px solid var(--inst-border) !important;
+    box-shadow: 0 12px 32px rgba(21, 42, 74, 0.2) !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 50;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .erp-sidebar.sidebar-open {
     transform: translateX(0);
@@ -204,7 +204,7 @@ html, body {
   }
 }
 
-/* Main Area */
+/* Main Content Area */
 .erp-main-area {
   flex: 1;
   display: flex;
@@ -212,16 +212,15 @@ html, body {
   height: 100vh;
   min-width: 0;
   overflow: hidden;
-  background: var(--clay-bg-gradient) !important;
-  background-attachment: fixed !important;
+  background: var(--inst-paper) !important;
 }
 
-/* Header */
+/* Institutional Header */
 .erp-header {
   height: 68px;
-  background: var(--clay-surface) !important;
-  border-bottom: none !important;
-  box-shadow: 0 4px 16px rgba(163, 177, 198, 0.25) !important;
+  background: var(--inst-surface) !important;
+  border-bottom: 1px solid var(--inst-border) !important;
+  box-shadow: 0 1px 2px rgba(21, 42, 74, 0.04) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -231,34 +230,33 @@ html, body {
 }
 
 .erp-header-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--clay-radius-sm);
-  background: var(--clay-surface);
-  color: var(--clay-primary);
-  border: none !important;
-  box-shadow: var(--clay-shadow-sm);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--inst-radius-sm) !important;
+  background: var(--inst-surface);
+  color: var(--inst-ink);
+  border: 1px solid var(--inst-border) !important;
+  box-shadow: var(--inst-shadow-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 .erp-header-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--clay-shadow);
+  background: var(--inst-ink-tint);
+  border-color: var(--inst-border-strong) !important;
 }
 .erp-header-btn:active {
-  box-shadow: var(--clay-inset-sm) !important;
-  transform: translateY(1px) scale(0.97) !important;
+  transform: scale(0.97);
 }
 
-/* Content Area */
+/* Content Container */
 .erp-content {
   flex: 1;
   overflow-y: auto;
   padding: 1.75rem 2rem 5rem 2rem;
-  background: transparent !important;
+  background: var(--inst-paper) !important;
 }
 .erp-content-container {
   max-width: 1440px;
@@ -273,79 +271,88 @@ html, body {
 }
 
 /* ===============================================================
-   CLAYMORPHISM CORE CLASSES & GLOBAL OVERRIDES
+   FLAT BORDERED INSTITUTIONAL CARDS & CONTAINERS
    =============================================================== */
-
-/* Clay Cards & Containers (24px - 32px border-radius, soft clay look) */
 .clay-card,
-.bg-white.rounded-3xl,
-.bg-white.rounded-2xl,
-.bg-white\/80.rounded-3xl,
+.bg-white,
+.bg-white\/80,
 div.rounded-3xl.shadow-xl,
-div.rounded-2xl.shadow-xl {
-  background: var(--clay-surface) !important;
-  border-radius: var(--clay-radius-card) !important;
-  border: none !important;
-  box-shadow: var(--clay-shadow) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+div.rounded-2xl.shadow-xl,
+div.rounded-3xl.border,
+div.rounded-2xl.border {
+  background: var(--inst-surface) !important;
+  border-radius: var(--inst-radius) !important;
+  border: 1px solid var(--inst-border) !important;
+  box-shadow: var(--inst-shadow-sm) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
 .clay-card:hover,
-.bg-white.rounded-3xl:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--clay-shadow-lg) !important;
+.bg-white.rounded-3xl:hover,
+div.rounded-3xl.shadow-xl:hover {
+  border-color: var(--inst-border-strong) !important;
+  box-shadow: var(--inst-shadow) !important;
 }
 
-/* Stat Card Hover */
-.hover\:scale-105:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: var(--clay-shadow-lg) !important;
+/* Remove bouncy hover transitions from old cards */
+.hover\:scale-105:hover,
+.hover\:-translate-y-1:hover {
+  transform: none !important;
 }
 
-/* Buttons: Raised clay look at rest, inset/pressed on :active */
+/* ===============================================================
+   BUTTONS: INSTITUTIONAL NAVY PRIMARY & CLEAN FLAT SECONDARY
+   =============================================================== */
 button,
 .clay-btn {
-  font-family: inherit;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: var(--font-body);
+  transition: all 0.15s ease;
   outline: none;
 }
 
 button:not([disabled]):active,
 .clay-btn:not([disabled]):active {
-  box-shadow: var(--clay-inset) !important;
-  transform: translateY(1px) scale(0.98) !important;
+  box-shadow: none !important;
+  transform: scale(0.99) !important;
 }
 
-/* Primary Brand Clay Buttons */
+/* Primary Brand Institutional Buttons: Navy (#152A4A) */
 .bg-blue-600,
 .bg-indigo-600,
+.bg-blue-700,
+.bg-indigo-700,
 .clay-btn-primary,
-button[type="submit"] {
-  background: linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%) !important;
+button[type="submit"],
+[class*="from-blue-600"],
+[class*="from-indigo-600"] {
+  background: var(--inst-ink) !important;
+  background-image: none !important;
   color: #FFFFFF !important;
-  border: none !important;
-  border-radius: var(--clay-radius-sm) !important;
-  box-shadow: var(--clay-btn-primary-shadow) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.02em !important;
+  border: 1px solid var(--inst-ink) !important;
+  border-radius: var(--inst-radius-sm) !important;
+  box-shadow: var(--inst-shadow-sm) !important;
+  font-weight: 600 !important;
+  font-family: var(--font-body) !important;
   cursor: pointer;
 }
 
 .bg-blue-600:hover,
 .bg-indigo-600:hover,
 .clay-btn-primary:hover,
-button[type="submit"]:hover {
-  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%) !important;
-  box-shadow: 8px 8px 18px rgba(99, 102, 241, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.9), inset 1px 1px 2px rgba(255, 255, 255, 0.4) !important;
-  transform: translateY(-1px) !important;
+button[type="submit"]:hover,
+[class*="from-blue-600"]:hover,
+[class*="from-indigo-600"]:hover {
+  background: var(--inst-ink-700) !important;
+  border-color: var(--inst-ink-700) !important;
+  box-shadow: 0 2px 4px rgba(21, 42, 74, 0.14) !important;
 }
 
 .bg-blue-600:active,
 .bg-indigo-600:active,
 .clay-btn-primary:active,
 button[type="submit"]:active {
-  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(1px) scale(0.98) !important;
+  background: #112038 !important;
+  transform: translateY(0) scale(0.99) !important;
 }
 
 /* Secondary / Action Buttons */
@@ -353,13 +360,24 @@ button[type="submit"]:active {
 .bg-slate-50:not(thead):not(th),
 .bg-gray-100,
 .bg-slate-200 {
-  background: var(--clay-surface) !important;
-  border: none !important;
-  border-radius: var(--clay-radius-sm) !important;
-  box-shadow: var(--clay-shadow-sm) !important;
+  background: var(--inst-surface) !important;
+  border: 1px solid var(--inst-border) !important;
+  border-radius: var(--inst-radius-sm) !important;
+  color: var(--inst-text) !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
 }
 
-/* Form Inputs: Pressed-in (inset shadow) */
+.bg-slate-100:hover,
+.bg-gray-100:hover {
+  background: var(--inst-ink-tint) !important;
+  border-color: var(--inst-border-strong) !important;
+  color: var(--inst-ink) !important;
+}
+
+/* ===============================================================
+   FORM INPUTS, SELECTS & TEXTAREAS (FLAT BORDERED)
+   =============================================================== */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -369,66 +387,21 @@ select,
 textarea,
 .clay-input {
   width: 100%;
-  border-radius: 18px !important;
-  border: none !important;
-  background: var(--clay-surface-inset) !important;
-  color: var(--clay-text) !important;
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
-  padding-right: 1rem !important;
-  padding-left: 1rem; /* default fallback only so pl-10/pl-12/inline padding take precedence */
+  border-radius: var(--inst-radius-sm) !important;
+  border: 1px solid var(--inst-border-strong) !important;
+  background: var(--inst-surface) !important;
+  color: var(--inst-text) !important;
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  padding-right: 0.875rem !important;
+  padding-left: 0.875rem;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  box-shadow: var(--clay-inset) !important;
-  transition: all 0.2s ease !important;
+  font-family: var(--font-body) !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
   outline: none !important;
   box-sizing: border-box !important;
-}
-
-/* ===============================================================
-   LEADING ICON & INPUT ALIGNMENT (FIXES ISSUE 1 & ISSUE 2)
-   Prevents any overlap between leading icons and placeholder text
-   =============================================================== */
-
-/* Guarantee 44px–48px left padding on inputs with leading icons */
-.relative input.pl-10,
-.relative input[class*="pl-10"],
-input.pl-10,
-input[class*="pl-10"] {
-  padding-left: 44px !important;
-}
-
-.relative input.pl-12,
-.relative input[class*="pl-12"],
-input.pl-12,
-input[class*="pl-12"] {
-  padding-left: 48px !important;
-}
-
-/* Center leading icons vertically and place cleanly at 14px */
-.relative > svg.absolute,
-.relative > svg.left-3,
-.relative > svg.left-4 {
-  position: absolute !important;
-  left: 14px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
-  width: 18px !important;
-  height: 18px !important;
-  display: block !important;
-  margin: 0 !important;
-}
-
-/* Question option prefixes (e.g. A, B in teacher dashboard) */
-.relative > span.absolute {
-  position: absolute !important;
-  left: 16px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
 }
 
 input[type="text"]:focus,
@@ -439,61 +412,115 @@ input[type="date"]:focus,
 select:focus,
 textarea:focus,
 .clay-input:focus {
-  background: #F4F7FD !important;
-  box-shadow: var(--clay-inset-focus) !important;
+  border-color: var(--inst-ink) !important;
+  box-shadow: 0 0 0 3px rgba(21, 42, 74, 0.1) !important;
+  background: var(--inst-surface) !important;
 }
 
-/* Labels: Increased letter-spacing for softer feel */
+/* ===============================================================
+   LEADING ICON & INPUT ALIGNMENT (PRESERVE ZERO OVERLAP)
+   =============================================================== */
+.relative input.pl-10,
+.relative input[class*="pl-10"],
+input.pl-10,
+input[class*="pl-10"] {
+  padding-left: 42px !important;
+}
+
+.relative input.pl-12,
+.relative input[class*="pl-12"],
+input.pl-12,
+input[class*="pl-12"] {
+  padding-left: 46px !important;
+}
+
+.relative > svg.absolute,
+.relative > svg.left-3,
+.relative > svg.left-4 {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  width: 17px !important;
+  height: 17px !important;
+  display: block !important;
+  margin: 0 !important;
+  color: var(--inst-muted) !important;
+}
+
+.relative > span.absolute {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  color: var(--inst-muted) !important;
+}
+
+/* Labels */
 label,
-.clay-label,
-th,
-.uppercase.tracking-widest {
-  letter-spacing: 0.06em !important;
-  font-weight: 700 !important;
-  color: #4A5568 !important;
+.clay-label {
+  letter-spacing: 0.02em !important;
+  font-weight: 600 !important;
+  color: var(--inst-muted) !important;
+  font-family: var(--font-body) !important;
 }
 
-/* Icons inside soft circular/rounded-square clay containers */
+/* ===============================================================
+   ICON WELLS & STATUS BADGES (MUTED TINTS)
+   =============================================================== */
 .w-12.h-12,
 .w-14.h-14,
 .w-16.h-16,
 .w-10.h-10 {
-  border-radius: 20px !important;
-  border: none !important;
-  box-shadow: var(--clay-shadow-sm) !important;
+  border-radius: var(--inst-radius-sm) !important;
+  border: 1px solid var(--inst-border) !important;
+  box-shadow: none !important;
 }
 
-/* Badge/Icon Container Color Variants */
+/* Blue & Indigo wells -> Navy Tint */
 .bg-blue-50,
-.bg-indigo-50 {
-  background: #EEF2FF !important;
-  color: var(--clay-primary) !important;
-  border: none !important;
+.bg-indigo-50,
+.bg-purple-50 {
+  background: var(--inst-ink-tint) !important;
+  color: var(--inst-ink) !important;
+  border: 1px solid var(--inst-border) !important;
+  border-radius: var(--inst-radius-sm) !important;
 }
+
+/* Green & Emerald wells -> Success Tint */
 .bg-green-50,
 .bg-emerald-50 {
-  background: #ECFDF5 !important;
-  color: #10B981 !important;
-  border: none !important;
-}
-.bg-orange-50,
-.bg-amber-50 {
-  background: #FFF7ED !important;
-  color: #F59E0B !important;
-  border: none !important;
-}
-.bg-purple-50 {
-  background: #F5F3FF !important;
-  color: #8B5CF6 !important;
-  border: none !important;
-}
-.bg-red-50 {
-  background: #FEF2F2 !important;
-  color: #EF4444 !important;
-  border: none !important;
+  background: var(--inst-success-tint) !important;
+  color: var(--inst-success) !important;
+  border: 1px solid rgba(63, 122, 82, 0.25) !important;
+  border-radius: var(--inst-radius-sm) !important;
 }
 
-/* Professional Clay Tables */
+/* Orange & Amber wells -> Gold Tint */
+.bg-orange-50,
+.bg-amber-50,
+.bg-yellow-50 {
+  background: var(--inst-gold-tint) !important;
+  color: var(--inst-gold) !important;
+  border: 1px solid rgba(173, 127, 46, 0.25) !important;
+  border-radius: var(--inst-radius-sm) !important;
+}
+
+/* Red wells -> Danger Tint */
+.bg-red-50 {
+  background: var(--inst-danger-tint) !important;
+  color: var(--inst-danger) !important;
+  border: 1px solid rgba(156, 59, 50, 0.25) !important;
+  border-radius: var(--inst-radius-sm) !important;
+}
+
+/* ===============================================================
+   DATA TABLES (CLEAN INSTITUTIONAL LINES)
+   =============================================================== */
 table {
   width: 100% !important;
   border-collapse: separate !important;
@@ -502,52 +529,62 @@ table {
 table thead tr,
 thead.bg-slate-50,
 thead.bg-slate-100 {
-  background: var(--clay-surface-soft) !important;
+  background: var(--inst-ink-tint) !important;
 }
 table thead th {
-  padding: 0.95rem 1.25rem !important;
-  color: #4A5568 !important;
-  font-weight: 800 !important;
+  padding: 0.75rem 1.125rem !important;
+  color: var(--inst-muted) !important;
+  font-weight: 700 !important;
   font-size: 0.6875rem !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
-  border-bottom: 2px solid rgba(163, 177, 198, 0.25) !important;
+  font-family: var(--font-body) !important;
+  border-bottom: 1px solid var(--inst-border) !important;
+  border-top: 1px solid var(--inst-border) !important;
 }
 table tbody tr {
-  transition: background-color 0.15s ease !important;
+  transition: background-color 0.12s ease !important;
 }
 table tbody tr:hover {
-  background-color: rgba(229, 234, 245, 0.55) !important;
+  background-color: rgba(238, 242, 247, 0.55) !important;
 }
 table tbody td {
-  padding: 0.95rem 1.25rem !important;
-  border-bottom: 1px solid rgba(163, 177, 198, 0.20) !important;
+  padding: 0.8125rem 1.125rem !important;
+  border-bottom: 1px solid var(--inst-border) !important;
   font-size: 0.875rem !important;
-  color: var(--clay-text) !important;
+  color: var(--inst-text) !important;
+  font-family: var(--font-body) !important;
 }
 table tbody tr:last-child td {
   border-bottom: none !important;
 }
 
-/* Modals */
+/* ===============================================================
+   MODALS (CLEAN BACKDROP & FLAT BORDERED DIALOGS)
+   =============================================================== */
 .fixed.inset-0.bg-slate-900\/60,
 .fixed.inset-0.bg-black\/50,
-.fixed.inset-0.bg-black\/60 {
-  backdrop-filter: blur(8px) !important;
-  background-color: rgba(45, 55, 72, 0.40) !important;
+.fixed.inset-0.bg-black\/60,
+.fixed.inset-0.bg-slate-900\/40 {
+  backdrop-filter: blur(4px) !important;
+  background-color: rgba(21, 42, 74, 0.45) !important;
 }
-.fixed.inset-0 .bg-white.rounded-3xl {
-  background: var(--clay-surface) !important;
-  box-shadow: 16px 16px 36px rgba(163, 177, 198, 0.6), -16px -16px 36px rgba(255, 255, 255, 0.9) !important;
-  border: none !important;
+.fixed.inset-0 .bg-white.rounded-3xl,
+.fixed.inset-0 .bg-white.rounded-2xl {
+  background: var(--inst-surface) !important;
+  box-shadow: var(--inst-shadow) !important;
+  border: 1px solid var(--inst-border) !important;
+  border-radius: var(--inst-radius-lg) !important;
 }
 
-/* Spinner */
+/* ===============================================================
+   SPINNER
+   =============================================================== */
 .clay-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3.5px solid rgba(163, 177, 198, 0.35);
-  border-top-color: var(--clay-primary);
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--inst-border);
+  border-top-color: var(--inst-ink);
   border-radius: 50%;
   animation: erpSpin 0.8s linear infinite;
 }

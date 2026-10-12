@@ -66,13 +66,13 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
         }`}
       />
 
-      {/* Claymorphism Sidebar */}
+      {/* Institutional Sidebar */}
       <aside
         className={`erp-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}
         style={{
-          background: 'var(--clay-surface)',
-          borderRight: 'none',
-          boxShadow: '4px 0 16px rgba(163, 177, 198, 0.3)',
+          background: 'var(--inst-surface)',
+          borderRight: '1px solid var(--inst-border)',
+          boxShadow: 'none',
         }}
       >
         {/* Brand Header */}
@@ -83,16 +83,17 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
           justifyContent: isOpen ? 'space-between' : 'center',
           padding: isOpen ? '0 1.25rem' : '0',
           flexShrink: 0,
+          borderBottom: '1px solid var(--inst-border)',
         }}>
           {isOpen ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {/* Logo in soft clay container */}
+              {/* Logo in institutional navy tint container */}
               <div style={{
                 width: '38px',
                 height: '38px',
-                borderRadius: '14px',
-                background: 'var(--clay-surface)',
-                boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
+                borderRadius: 'var(--inst-radius-sm)',
+                background: 'var(--inst-ink-tint)',
+                border: '1px solid var(--inst-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -103,19 +104,21 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
               </div>
               <div>
                 <h1 style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 900,
-                  color: 'var(--clay-text)',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-display)',
+                  color: 'var(--inst-ink)',
                   lineHeight: 1.1,
                   margin: 0,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: '-0.01em',
                 }}>
                   CGC ERP
                 </h1>
                 <p style={{
                   fontSize: '0.625rem',
-                  fontWeight: 700,
-                  color: 'var(--clay-muted)',
+                  fontWeight: 600,
+                  color: 'var(--inst-muted)',
+                  fontFamily: 'var(--font-body)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   margin: '2px 0 0 0',
@@ -128,9 +131,9 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
             <div style={{
               width: '38px',
               height: '38px',
-              borderRadius: '14px',
-              background: 'var(--clay-surface)',
-              boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.85)',
+              borderRadius: 'var(--inst-radius-sm)',
+              background: 'var(--inst-ink-tint)',
+              border: '1px solid var(--inst-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -146,20 +149,19 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
               onClick={toggleSidebar}
               className="lg:hidden"
               style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '12px',
-                background: 'var(--clay-surface)',
-                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.45), -3px -3px 6px rgba(255, 255, 255, 0.8)',
-                color: 'var(--clay-muted)',
+                width: '32px',
+                height: '32px',
+                borderRadius: 'var(--inst-radius-sm)',
+                background: 'var(--inst-surface)',
+                border: '1px solid var(--inst-border)',
+                color: 'var(--inst-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                border: 'none',
               }}
             >
-              <X size={18} />
+              <X size={17} />
             </button>
           )}
         </div>
@@ -173,7 +175,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
             padding: isOpen ? '0.875rem 0.75rem' : '0.875rem 0.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px',
+            gap: '4px',
           }}
         >
           {items.map((item) => {
@@ -194,45 +196,37 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                     gap: isOpen ? '0.75rem' : '0',
                     justifyContent: isOpen ? 'flex-start' : 'center',
                     padding: isOpen ? '0.625rem 0.875rem' : '0.625rem',
-                    borderRadius: '16px',
-                    border: 'none',
-                    background: isActive ? '#E5EBF6' : 'transparent',
-                    boxShadow: isActive
-                      ? 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.75)'
-                      : 'none',
-                    color: isActive ? 'var(--clay-primary)' : '#4B5563',
+                    borderRadius: 'var(--inst-radius-sm)',
+                    border: isActive ? '1px solid var(--inst-ink)' : '1px solid transparent',
+                    background: isActive ? 'var(--inst-ink)' : 'transparent',
+                    boxShadow: isActive ? 'var(--inst-shadow-sm)' : 'none',
+                    color: isActive ? '#FFFFFF' : 'var(--inst-text)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     position: 'relative',
+                    fontFamily: 'var(--font-body)',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = '#F0F3FA';
-                      e.currentTarget.style.boxShadow = '3px 3px 6px rgba(163, 177, 198, 0.35), -3px -3px 6px rgba(255, 255, 255, 0.7)';
-                      e.currentTarget.style.color = 'var(--clay-primary)';
+                      e.currentTarget.style.background = 'var(--inst-ink-tint)';
+                      e.currentTarget.style.borderColor = 'var(--inst-border)';
+                      e.currentTarget.style.color = 'var(--inst-ink)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.color = '#4B5563';
+                      e.currentTarget.style.borderColor = 'transparent';
+                      e.currentTarget.style.color = 'var(--inst-text)';
                     }
                   }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.transform = 'scale(0.97)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
                 >
-                  {/* Icon inside soft container if active */}
                   <item.icon
-                    size={19}
-                    strokeWidth={isActive ? 2.5 : 2}
+                    size={18}
+                    strokeWidth={isActive ? 2.4 : 2}
                     style={{
                       flexShrink: 0,
-                      color: isActive ? 'var(--clay-primary)' : 'inherit',
+                      color: isActive ? '#FFFFFF' : 'inherit',
                       transition: 'all 0.15s ease',
                     }}
                   />
@@ -241,7 +235,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                   {isOpen && (
                     <span style={{
                       fontSize: '0.8125rem',
-                      fontWeight: isActive ? 700 : 600,
+                      fontWeight: isActive ? 600 : 500,
                       letterSpacing: '0.01em',
                       whiteSpace: 'nowrap',
                     }}>
@@ -257,15 +251,17 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
                       position: 'fixed',
                       left: '86px',
                       padding: '0.4rem 0.75rem',
-                      background: 'var(--clay-surface)',
-                      color: 'var(--clay-text)',
+                      background: 'var(--inst-ink)',
+                      color: '#FFFFFF',
                       fontSize: '0.75rem',
-                      fontWeight: 700,
-                      borderRadius: '12px',
+                      fontWeight: 600,
+                      borderRadius: 'var(--inst-radius-sm)',
+                      border: '1px solid var(--inst-ink)',
                       whiteSpace: 'nowrap',
                       pointerEvents: 'none',
-                      boxShadow: '4px 4px 10px rgba(163, 177, 198, 0.5), -4px -4px 10px rgba(255, 255, 255, 0.8)',
+                      boxShadow: 'var(--inst-shadow)',
                       zIndex: 60,
+                      fontFamily: 'var(--font-body)',
                     }}
                     className="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150"
                   >
@@ -277,11 +273,12 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
           })}
         </nav>
 
-        {/* Bottom Section: Clay Logout Button */}
+        {/* Bottom Section: Institutional Logout Button */}
         <div style={{
           padding: isOpen ? '0.875rem' : '0.875rem 0.5rem',
           paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))',
           flexShrink: 0,
+          borderTop: '1px solid var(--inst-border)',
         }}>
           <button
             onClick={logout}
@@ -292,34 +289,27 @@ const Sidebar = ({ role, activeTab, setActiveTab, logout, isOpen, toggleSidebar 
               gap: isOpen ? '0.75rem' : '0',
               justifyContent: isOpen ? 'flex-start' : 'center',
               padding: isOpen ? '0.625rem 0.875rem' : '0.625rem',
-              borderRadius: '16px',
-              border: 'none',
-              background: '#FEF2F2',
-              boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)',
-              color: 'var(--clay-danger)',
+              borderRadius: 'var(--inst-radius-sm)',
+              border: '1px solid rgba(156, 59, 50, 0.25)',
+              background: 'var(--inst-danger-tint)',
+              boxShadow: 'none',
+              color: 'var(--inst-danger)',
               cursor: 'pointer',
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: '0.8125rem',
+              fontFamily: 'var(--font-body)',
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '5px 5px 10px rgba(163, 177, 198, 0.45), -5px -5px 10px rgba(255, 255, 255, 0.9)';
+              e.currentTarget.style.background = '#F8DCD9';
+              e.currentTarget.style.borderColor = 'rgba(156, 59, 50, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.boxShadow = 'inset 3px 3px 6px rgba(239, 68, 68, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.7)';
-              e.currentTarget.style.transform = 'scale(0.97)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'var(--inst-danger-tint)';
+              e.currentTarget.style.borderColor = 'rgba(156, 59, 50, 0.25)';
             }}
           >
-            <LogOut size={18} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+            <LogOut size={17} strokeWidth={2.2} style={{ flexShrink: 0 }} />
             {isOpen && <span>Logout</span>}
           </button>
         </div>

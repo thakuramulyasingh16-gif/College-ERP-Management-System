@@ -10,15 +10,15 @@ export const Loader = () => (
     padding: '4rem 2rem',
     gap: '1.25rem',
   }}>
-    {/* Clay Spinner */}
     <div className="clay-spinner" />
     <div style={{ textAlign: 'center' }}>
       <p style={{
-        fontWeight: 800,
-        fontSize: '0.6875rem',
+        fontWeight: 600,
+        fontSize: '0.75rem',
         textTransform: 'uppercase',
-        letterSpacing: '0.15em',
-        color: 'var(--clay-muted)',
+        letterSpacing: '0.12em',
+        color: 'var(--inst-muted)',
+        fontFamily: 'var(--font-body)',
       }}>
         Loading data...
       </p>
@@ -28,41 +28,46 @@ export const Loader = () => (
 
 export const ErrorMessage = ({ message, retry }) => (
   <div style={{
-    padding: '2.5rem',
-    background: 'var(--clay-surface)',
-    borderRadius: 'var(--clay-radius)',
-    border: 'none',
-    boxShadow: 'var(--clay-shadow)',
+    padding: '2.5rem 2rem',
+    background: 'var(--inst-surface)',
+    borderRadius: 'var(--inst-radius)',
+    border: '1px solid var(--inst-border)',
+    boxShadow: 'var(--inst-shadow-sm)',
     textAlign: 'center',
+    maxWidth: '480px',
+    margin: '2rem auto',
   }}>
-    {/* Icon inside soft clay container */}
+    {/* Icon in institutional danger tint well */}
     <div style={{
-      width: '64px',
-      height: '64px',
-      background: '#FEF2F2',
-      borderRadius: '20px',
+      width: '56px',
+      height: '56px',
+      background: 'var(--inst-danger-tint)',
+      border: '1px solid rgba(156, 59, 50, 0.25)',
+      borderRadius: 'var(--inst-radius-sm)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       margin: '0 auto 1.25rem',
-      boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.8)',
     }}>
-      <AlertTriangle size={28} style={{ color: 'var(--clay-danger)' }} />
+      <AlertTriangle size={26} style={{ color: 'var(--inst-danger)' }} />
     </div>
 
     <h3 style={{
-      fontWeight: 800,
-      fontSize: '1rem',
-      color: '#DC2626',
+      fontFamily: 'var(--font-display)',
+      fontWeight: 600,
+      fontSize: '1.125rem',
+      color: 'var(--inst-danger)',
       marginBottom: '0.5rem',
       letterSpacing: '-0.01em',
     }}>
       Something went wrong
     </h3>
     <p style={{
-      color: 'var(--clay-muted)',
+      color: 'var(--inst-muted)',
       fontSize: '0.875rem',
       fontWeight: 500,
+      fontFamily: 'var(--font-body)',
+      lineHeight: 1.5,
       marginBottom: retry ? '1.5rem' : 0,
     }}>
       {message || 'An unexpected error occurred. Please try again.'}
@@ -76,24 +81,27 @@ export const ErrorMessage = ({ message, retry }) => (
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.625rem 1.25rem',
-          background: 'linear-gradient(135deg, var(--clay-primary) 0%, var(--clay-primary-hover) 100%)',
-          color: 'white',
-          borderRadius: '16px',
-          border: 'none',
+          background: 'var(--inst-ink)',
+          border: '1px solid var(--inst-ink)',
+          color: '#FFFFFF',
+          borderRadius: 'var(--inst-radius-sm)',
           cursor: 'pointer',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '0.8125rem',
-          boxShadow: 'var(--clay-btn-primary-shadow)',
-          transition: 'all 0.2s ease',
+          fontFamily: 'var(--font-body)',
+          boxShadow: 'var(--inst-shadow-sm)',
+          transition: 'all 0.15s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.background = 'var(--inst-ink-700)';
+          e.currentTarget.style.borderColor = 'var(--inst-ink-700)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.background = 'var(--inst-ink)';
+          e.currentTarget.style.borderColor = 'var(--inst-ink)';
         }}
       >
-        <RefreshCw size={15} strokeWidth={2.5} />
+        <RefreshCw size={15} strokeWidth={2.2} />
         Try Again
       </button>
     )}

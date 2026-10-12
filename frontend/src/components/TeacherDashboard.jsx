@@ -830,15 +830,52 @@ const TeacherDashboard = ({ activeTab, setActiveTab }) => {
     </div>
   );
 
-  const StatCard = ({ title, value, icon: Icon, color }) => {
-    const colors = { blue: 'bg-blue-50 text-blue-600 border-blue-100', indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100' };
+  const StatCard = ({ title, value, icon: Icon }) => {
     return (
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50">
-        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-6 ${colors[color]} border`}>
-          {Icon ? <Icon size={28} strokeWidth={2.5}  /> : <div className="text-xs font-black">{title?.charAt(0)}</div>}
+      <div style={{
+        background: 'var(--inst-surface)',
+        padding: '1.75rem',
+        borderRadius: 'var(--inst-radius)',
+        border: '1px solid var(--inst-border)',
+        boxShadow: 'var(--inst-shadow-sm)',
+        transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+      }}>
+        <div style={{
+          width: '46px',
+          height: '46px',
+          borderRadius: 'var(--inst-radius-sm)',
+          background: 'var(--inst-ink-tint)',
+          border: '1px solid var(--inst-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '1.25rem',
+          color: 'var(--inst-ink)',
+        }}>
+          {Icon ? <Icon size={24} strokeWidth={2.2} /> : <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{title?.charAt(0)}</div>}
         </div>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-        <p className="text-3xl md:text-4xl font-black text-slate-900 mt-2 tracking-tighter">{value}</p>
+        <p style={{
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: 'var(--inst-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          fontFamily: 'var(--font-body)',
+          margin: 0,
+        }}>
+          {title}
+        </p>
+        <p style={{
+          fontSize: '2rem',
+          fontWeight: 600,
+          color: 'var(--inst-ink)',
+          fontFamily: 'var(--font-display)',
+          letterSpacing: '-0.02em',
+          margin: '0.35rem 0 0 0',
+          lineHeight: 1.1,
+        }}>
+          {value}
+        </p>
       </div>
     );
   };
