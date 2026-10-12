@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: college-erp-management-system-1
+    runtime: static
+    repo: https://github.com/thakuramulyasingh16-gif/college-erp-management-system
+    branch: main
+    rootDir: frontend
+    buildCommand: npm install; npm run build
+    staticPublishPath: dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=63072000; includeSubDomains; preload
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://college-erp-management-system-a9xk.onrender.com; frame-ancestors 'none'"
