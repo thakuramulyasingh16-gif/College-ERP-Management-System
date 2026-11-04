@@ -136,6 +136,14 @@ const otpVerifyRateLimiter = createSimpleLimiter({
   message: 'Too many OTP verification attempts. Please try again in 15 minutes.'
 });
 
+// 20 captcha challenge requests per minute per IP
+const captchaChallengeLimiter = createSimpleLimiter({
+  windowMs: 60 * 1000,
+  maxAttempts: 20,
+  name: 'captcha-challenge',
+  message: 'Too many captcha requests. Please slow down.',
+});
+
 module.exports = {
   complaintRateLimiter,
   submissionRateLimiter,
@@ -143,6 +151,7 @@ module.exports = {
   changePasswordRateLimiter,
   rollNumberRateLimiter,
   otpRequestRateLimiter,
-  otpVerifyRateLimiter
+  otpVerifyRateLimiter,
+  captchaChallengeLimiter,
 };
 
