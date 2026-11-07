@@ -194,9 +194,10 @@ exports.login = async (req, res) => {
 
     // FEATURE: Single active session per user.
     // Overwrite current_session_token in DB so any previous session on another device is invalidated.
+    // Also set last_activity_at = NOW() to start the idle timeout clock.
     try {
       await db.execute(
-        "UPDATE users SET current_session_token = ? WHERE id = ?",
+        "UPDATE users SET current_session_token = ?, last_activity_at = NOW() WHERE id = ?",
         [token, user.id]
       );
     } catch (tokenErr) {
@@ -271,7 +272,7 @@ exports.logout = async (req, res) => {
     }
     if (req.user && req.user.id) {
       await db.execute(
-        "UPDATE users SET current_session_token = NULL WHERE id = ?",
+        "UPDATE users SET current_session_token = NULL, last_activity_at = NULL WHERE id = ?",
         [req.user.id]
       ).catch(() => {});
     }
@@ -553,9 +554,9 @@ exports.resetForgotPassword = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password AND invalidate current_session_token to log out all existing sessions
+    // Update password AND invalidate current_session_token + last_activity_at to log out all existing sessions
     await db.execute(
-      "UPDATE users SET password = ?, current_session_token = NULL WHERE id = ?",
+      "UPDATE users SET password = ?, current_session_token = NULL, last_activity_at = NULL WHERE id = ?",
       [hashedPassword, tokenRecord.userId]
     );
 

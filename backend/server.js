@@ -30,6 +30,12 @@ db.getConnection()
       console.log("users.current_session_token verified/added.");
     } catch (colErr) { /* column exists */ }
 
+    // 1b. users.last_activity_at (idle timeout tracking)
+    try {
+      await connection.query("ALTER TABLE users ADD COLUMN last_activity_at DATETIME NULL DEFAULT NULL");
+      console.log("users.last_activity_at verified/added.");
+    } catch (colErr) { /* column exists */ }
+
     // 2. staff.teacher_code
     try {
       const [staffCols] = await connection.query("SHOW COLUMNS FROM staff LIKE 'teacher_code'");
@@ -135,9 +141,9 @@ app.use('/api/auth', authRoutes);
 // All ERP business routes (all protected by auth middleware in erpRoutes.js)
 app.use('/api', erpRoutes);
 
-// Polling endpoint for single active session check
+// Polling endpoint for single active session check — MUST NOT refresh idle timer
 const authMiddleware = require('./middleware/auth');
-app.get('/api/session/check', authMiddleware(), (req, res) => res.json({ valid: true }));
+app.get('/api/session/check', authMiddleware([], { skipActivity: true }), (req, res) => res.json({ valid: true }));
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');

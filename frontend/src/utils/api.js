@@ -4,6 +4,20 @@ export const getToken = () => {
   return localStorage.getItem("token") || "";
 };
 
+// Lazy import to avoid circular dependency
+function handleAuthErrorLazy(code, message) {
+  // Inline the same logic to keep utils/api.js free of ES module import overhead
+  const defaults = {
+    SESSION_INVALIDATED: 'You have been logged out because your account was signed in from another device.',
+    SESSION_IDLE_TIMEOUT: 'You were logged out because of inactivity.',
+    SESSION_EXPIRED: 'Your session has expired. Please log in again.',
+  };
+  const knownCodes = new Set(['SESSION_INVALIDATED', 'SESSION_IDLE_TIMEOUT', 'SESSION_EXPIRED']);
+  if (code && knownCodes.has(code)) {
+    sessionStorage.setItem('session_invalidated_msg', message || defaults[code]);
+  }
+}
+
 /**
  * Authenticated fetch wrapper.
  * Automatically attaches the Bearer token from localStorage.
@@ -28,17 +42,12 @@ export const authFetch = async (url, options = {}) => {
   try {
     const response = await fetch(url, { ...options, headers });
 
-    // Handle 401: Unauthorized / Session Invalidated
+    // Handle 401: Unauthorized / Session Invalidated / Idle Timeout
     if (response.status === 401) {
       try {
         const clone = response.clone();
         const data = await clone.json();
-        if (data && data.code === "SESSION_INVALIDATED") {
-          sessionStorage.setItem(
-            "session_invalidated_msg",
-            data.message || "You have been logged out because your account was signed in from another device."
-          );
-        }
+        handleAuthErrorLazy(data?.code, data?.message);
       } catch (e) {
         // Ignore json parse error on clone
       }
