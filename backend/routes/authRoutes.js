@@ -7,16 +7,49 @@ const { registerRateLimiter } = require("../middleware/registerRateLimiter");
 const {
   otpRequestRateLimiter,
   otpVerifyRateLimiter,
-  activityRateLimiter
+  activityRateLimiter,
+  captchaChallengeLimiter,
 } = require("../middleware/rateLimiters");
+const {
+  createCaptcha,
+  deleteCaptcha,
+  verifyCaptchaMiddleware,
+} = require("../middleware/captcha");
+
+// ── CAPTCHA challenge (public) ─────────────────────────────────────────────────
+// GET /api/auth/captcha
+// Optional: ?prev=<oldId>  deletes the previous captcha before issuing a new one
+// Returns: { captchaId, svg }  — answer is NEVER included
+router.get("/captcha", captchaChallengeLimiter, (req, res) => {
+  // Delete the previous captcha if the client sends its id (reload scenario)
+  if (req.query.prev) {
+    deleteCaptcha(req.query.prev);
+  }
+  const { captchaId, svg } = createCaptcha();
+  res.json({ captchaId, svg });
+});
 
 // Public routes
-router.post("/login", loginRateLimiter, authController.login);
+// loginRateLimiter runs FIRST (locked-out clients get 429 before captcha check)
+router.post(
+  "/login",
+  loginRateLimiter,
+  verifyCaptchaMiddleware,
+  authController.login
+);
 router.post("/register", registerRateLimiter, authController.register);
 
 // Forgot Password Flow (Students & Teachers only)
-router.post("/forgot-password/request", otpRequestRateLimiter, authController.requestOtp);
-router.post("/forgot-password/verify", otpVerifyRateLimiter, authController.verifyOtp);
+router.post(
+  "/forgot-password/request",
+  otpRequestRateLimiter,
+  authController.requestOtp
+);
+router.post(
+  "/forgot-password/verify",
+  otpVerifyRateLimiter,
+  authController.verifyOtp
+);
 router.post("/forgot-password/reset", authController.resetForgotPassword);
 
 // Protected routes
