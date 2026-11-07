@@ -136,6 +136,14 @@ const otpVerifyRateLimiter = createSimpleLimiter({
   message: 'Too many OTP verification attempts. Please try again in 15 minutes.'
 });
 
+// 60 activity heartbeat pings per 15 minutes per user/IP (1 per 15s max, with headroom)
+const activityRateLimiter = createSimpleLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 60,
+  name: 'activity',
+  message: 'Too many activity pings. Please slow down.',
+});
+
 module.exports = {
   complaintRateLimiter,
   submissionRateLimiter,
@@ -143,6 +151,7 @@ module.exports = {
   changePasswordRateLimiter,
   rollNumberRateLimiter,
   otpRequestRateLimiter,
-  otpVerifyRateLimiter
+  otpVerifyRateLimiter,
+  activityRateLimiter,
 };
 

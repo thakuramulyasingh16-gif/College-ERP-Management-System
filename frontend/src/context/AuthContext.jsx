@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { handleAuthError } from '../utils/authMessages';
 
 const AuthContext = createContext();
 
@@ -12,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
 
       if (!token) {
         localStorage.removeItem('token');
@@ -44,15 +44,10 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        // If response is not ok (401 invalid, expired, or session invalidated)
+        // If response is not ok (401 invalid, expired, session invalidated, or idle timeout)
         try {
           const errData = await res.json();
-          if (errData && errData.code === 'SESSION_INVALIDATED') {
-            sessionStorage.setItem(
-              'session_invalidated_msg',
-              errData.message || 'You have been logged out because your account was signed in from another device.'
-            );
-          }
+          handleAuthError(errData?.code, errData?.message);
         } catch (parseErr) {}
 
         console.warn("Session verification failed on mount, clearing state");
@@ -75,12 +70,29 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
+  // Cross-tab sync: if another tab removes the token (logout, idle, URL tamper),
+  // this tab goes to /login too.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'token' && !e.newValue) {
+        setUser(null);
+        if (window.location.pathname !== '/login') {
+          window.location.replace('/login');
+        }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const login = (userData, token) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     if (userData.role === 'teacher') {
       localStorage.setItem('teacher', JSON.stringify(userData));
     }
+    // Reset idle timer on login
+    localStorage.setItem('erp_last_activity', String(Date.now()));
     setUser(userData);
   };
 
@@ -106,6 +118,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('teacher');
+      localStorage.removeItem('erp_last_activity');
       setUser(null);
       if (window.location.pathname !== '/login') {
         window.location.replace('/login');
@@ -114,7 +127,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );

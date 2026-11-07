@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getToken } from '../utils/api';
+import { handleAuthError } from '../utils/authMessages';
 
 const api = axios.create({
   baseURL: 'https://college-erp-management-system-a9xk.onrender.com/api',
@@ -14,18 +15,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handles 401 (expired, blacklisted, or session invalidated)
+// Response interceptor: handles 401 (expired, blacklisted, session-invalidated, idle timeout)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       const data = error.response.data;
-      if (data && data.code === 'SESSION_INVALIDATED') {
-        sessionStorage.setItem(
-          'session_invalidated_msg',
-          data.message || 'You have been logged out because your account was signed in from another device.'
-        );
-      }
+      handleAuthError(data?.code, data?.message);
+
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('teacher');
