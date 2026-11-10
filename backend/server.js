@@ -6,6 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
 const erpRoutes = require('./routes/erpRoutes');
+const assistantRoutes = require('./routes/assistantRoutes');
 const uploadAuth = require('./middleware/uploadAuth');
 const { tokenBucketLimiter } = require('./middleware/tokenBucketLimiter');
 const db = require('./config/db');
@@ -137,6 +138,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Auth routes: /api/auth/login, /api/auth/logout, /api/auth/register
 app.use('/api/auth', authRoutes);
+
+// Student AI Study Assistant routes (read-only, feature-flagged)
+app.use('/api/assistant', assistantRoutes);
 
 // All ERP business routes (all protected by auth middleware in erpRoutes.js)
 app.use('/api', erpRoutes);
