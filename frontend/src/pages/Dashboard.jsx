@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import AdminDashboard from '../components/AdminDashboard';
 import TeacherDashboard from '../components/TeacherDashboard';
 import StudentDashboard from '../components/StudentDashboard';
+import AssistantWidget from '../components/AssistantWidget';
 import Clock from '../components/Clock';
 import { Menu, GraduationCap } from 'lucide-react';
 import api from '../api';
@@ -222,6 +223,9 @@ const Dashboard = () => {
             ) : null}
           </div>
         </main>
+
+        {/* Student-only AI Study Assistant */}
+        {user?.role === 'student' ? <AssistantWidget key={user?.id || 'student'} /> : null}
 
         {/* System Clock Component */}
         <Clock />
